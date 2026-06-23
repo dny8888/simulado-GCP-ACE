@@ -1,0 +1,475 @@
+{
+  "meta": {
+    "version": "1.0",
+    "total": 30,
+    "exam_distribution": {
+      "Setting up a cloud solution environment": 0.17,
+      "Planning and configuring a cloud solution": 0.17,
+      "Deploying and implementing a cloud solution": 0.25,
+      "Ensuring successful operation of a cloud solution": 0.20,
+      "Configuring access and security": 0.20
+    },
+    "domain_map": {
+      "Compute Engine": "Deploying and implementing",
+      "GKE": "Deploying and implementing",
+      "Cloud Run": "Deploying and implementing",
+      "Storage & Databases": "Planning and configuring",
+      "Networking": "Planning and configuring",
+      "IAM & Security": "Configuring access and security",
+      "Monitoring & Logging": "Ensuring successful operation",
+      "Deployment": "Deploying and implementing"
+    }
+  },
+  "questions": [
+    {
+      "id": 1,
+      "domain": "Compute Engine",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "Your company needs to deploy a web application that handles variable traffic. You want the application to scale automatically based on CPU utilization. Which Google Cloud service best fits this requirement?",
+      "options": {
+        "A": "Cloud Run with min-instances set to 0",
+        "B": "Compute Engine managed instance group with autoscaling",
+        "C": "Google Kubernetes Engine with manual node pools",
+        "D": "Cloud Functions with a maximum concurrency of 1"
+      },
+      "answer": "B",
+      "explanation": "Managed Instance Groups (MIGs) support autoscaling based on CPU utilization, load balancing capacity, Cloud Monitoring metrics, or schedules. This is the canonical Compute Engine pattern for variable traffic. Cloud Run (A) also autoscales but is container-based, not VM-based. GKE with manual node pools (C) doesn't autoscale. Cloud Functions (D) is event-driven, not CPU-autoscaled."
+    },
+    {
+      "id": 2,
+      "domain": "IAM & Security",
+      "section": "Configuring access and security",
+      "difficulty": "easy",
+      "text": "A developer needs read-only access to a specific Cloud Storage bucket. Following the principle of least privilege, what should you assign?",
+      "options": {
+        "A": "Project Viewer role at the project level",
+        "B": "Storage Object Viewer role at the bucket level",
+        "C": "Storage Admin role at the bucket level",
+        "D": "Project Editor role at the organization level"
+      },
+      "answer": "B",
+      "explanation": "Least privilege means granting the minimum permission at the narrowest scope. roles/storage.objectViewer grants read-only access to objects within a bucket. Granting at bucket level (not project level) further limits blast radius. Project Viewer (A) grants read access to ALL project resources, not just one bucket."
+    },
+    {
+      "id": 3,
+      "domain": "Networking",
+      "section": "Planning and configuring a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to establish a private connection between your on-premises network and Google Cloud without traversing the public internet. Traffic volume is low and an SLA is not critical. Which option is most cost-effective?",
+      "options": {
+        "A": "Cloud Interconnect (Dedicated)",
+        "B": "Cloud Interconnect (Partner)",
+        "C": "Cloud VPN",
+        "D": "Cloud CDN"
+      },
+      "answer": "C",
+      "explanation": "Cloud VPN creates an IPSec encrypted tunnel and is the most cost-effective option for low-volume traffic without SLA requirements. The traffic is private (encrypted tunnel) even though it travels over the internet infrastructure. Cloud Interconnect (A/B) provides physical private circuits with SLA guarantees but at significantly higher cost — justified only for high bandwidth or strict SLA needs. The keywords 'low volume' and 'SLA not critical' are the filters that point to VPN."
+    },
+    {
+      "id": 4,
+      "domain": "Storage & Databases",
+      "section": "Planning and configuring a cloud solution",
+      "difficulty": "medium",
+      "text": "Your application writes large streaming data (hundreds of GBs per day) and needs to query it with SQL. The data is only queried occasionally. Which storage solution is most appropriate?",
+      "options": {
+        "A": "Cloud SQL with PostgreSQL",
+        "B": "Cloud Spanner",
+        "C": "BigQuery",
+        "D": "Bigtable"
+      },
+      "answer": "C",
+      "explanation": "BigQuery is a serverless OLAP data warehouse designed for large-scale analytics with SQL. It ingests streaming data via the Streaming API, stores it in columnar format, and you pay per query (bytes scanned) — ideal for occasional querying. Cloud Spanner (B) is OLTP: globally distributed, strongly consistent transactional database — expensive and wrong for analytics. Cloud SQL (A) cannot handle hundreds of GBs/day of streaming writes at low cost. The pattern 'streaming + SQL + occasional query + large volume' = BigQuery."
+    },
+    {
+      "id": 5,
+      "domain": "Cloud Run",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "easy",
+      "text": "You have a stateless containerized microservice that needs to run only when triggered by HTTP requests. You want to minimize operational overhead and pay only for actual usage. What should you use?",
+      "options": {
+        "A": "Compute Engine n2-standard-2 instance",
+        "B": "Cloud Run",
+        "C": "GKE Autopilot cluster",
+        "D": "App Engine Flexible environment"
+      },
+      "answer": "B",
+      "explanation": "Cloud Run is fully managed, scales to zero, and charges only for request processing time. It's the canonical GCP answer for stateless containerized HTTP workloads with zero ops overhead. GKE Autopilot (C) manages nodes but still has baseline cluster cost. App Engine Flex (D) doesn't scale to zero. Compute Engine (A) is always-on and requires full VM management."
+    },
+    {
+      "id": 6,
+      "domain": "IAM & Security",
+      "section": "Configuring access and security",
+      "difficulty": "easy",
+      "text": "A team member left the company. You need to ensure they can no longer access Google Cloud resources while minimizing changes to project permissions. What is the recommended approach?",
+      "options": {
+        "A": "Delete all IAM policies from the project",
+        "B": "Remove the user from the Google Workspace organization or suspend their Google account",
+        "C": "Revoke only the Owner role from the user",
+        "D": "Transfer all their resource ownership to another user"
+      },
+      "answer": "B",
+      "explanation": "Disabling or removing the identity at the IdP level (Google Workspace/Cloud Identity) immediately revokes all access across all GCP projects and resources in one action — no need to hunt down every IAM binding. This is the most comprehensive and operationally correct approach. Revoking only the Owner role (C) misses other roles they might have. Deleting all IAM policies (A) would break other users' access too."
+    },
+    {
+      "id": 7,
+      "domain": "Monitoring & Logging",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "medium",
+      "text": "Your application is experiencing intermittent latency spikes. You want to identify the root cause by tracing requests across multiple microservices. Which GCP tool should you use?",
+      "options": {
+        "A": "Cloud Logging",
+        "B": "Cloud Monitoring dashboards",
+        "C": "Cloud Trace",
+        "D": "Cloud Profiler"
+      },
+      "answer": "C",
+      "explanation": "Cloud Trace is the distributed tracing service — it records latency data for requests as they propagate across microservices, showing you exactly where time is spent in each span. Cloud Logging (A) records events but doesn't show request flow across services. Cloud Profiler (D) continuously profiles CPU/memory consumption of running code, useful for performance optimization but not cross-service tracing. Cloud Monitoring (B) shows metrics but not trace-level request paths."
+    },
+    {
+      "id": 8,
+      "domain": "Storage & Databases",
+      "section": "Planning and configuring a cloud solution",
+      "difficulty": "medium",
+      "text": "You need a database for a global e-commerce application that requires strong consistency, relational structure, and horizontal scalability across multiple regions. Which service should you choose?",
+      "options": {
+        "A": "Cloud SQL (MySQL) with read replicas",
+        "B": "Cloud Spanner",
+        "C": "Firestore in Datastore mode",
+        "D": "Bigtable"
+      },
+      "answer": "B",
+      "explanation": "Cloud Spanner is the only relational database that is horizontally scalable and globally distributed with external strong consistency. Cloud SQL (A) is single-region primary with read replicas — no true horizontal write scaling. Firestore (C) is NoSQL document store — not relational. Bigtable (D) is a wide-column NoSQL store for time-series and analytical workloads. 'Relational + strong consistency + global + horizontal scale' is Spanner's exact value proposition."
+    },
+    {
+      "id": 9,
+      "domain": "Networking",
+      "section": "Planning and configuring a cloud solution",
+      "difficulty": "medium",
+      "text": "You want to restrict outbound internet access from VM instances in a VPC but allow them to access Google APIs and services. What should you configure?",
+      "options": {
+        "A": "A Cloud NAT gateway and Private Google Access",
+        "B": "A Cloud Load Balancer with SSL policy",
+        "C": "VPC Service Controls with an access policy",
+        "D": "A Cloud Armor security policy"
+      },
+      "answer": "A",
+      "explanation": "Cloud NAT provides outbound internet access for VMs without external IPs (you can restrict this per subnet). Private Google Access allows VMs without external IPs to reach Google APIs (storage.googleapis.com, etc.) through Google's internal network without traversing the internet. These two features together give you controlled, private-by-default egress. VPC Service Controls (C) restrict API access by perimeter, not egress routing. Cloud Armor (D) is a WAF/DDoS shield for inbound traffic."
+    },
+    {
+      "id": 10,
+      "domain": "Deployment",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to deploy a new version of your App Engine application without any downtime. After deployment, you want to route 10% of traffic to the new version to test it. What should you use?",
+      "options": {
+        "A": "Rolling updates with App Engine Flexible",
+        "B": "Traffic splitting in App Engine",
+        "C": "Blue-green deployment with Cloud Load Balancing",
+        "D": "Canary deployment using Cloud Run revisions"
+      },
+      "answer": "B",
+      "explanation": "App Engine has built-in traffic splitting as a native feature. You deploy a new version and use `gcloud app services set-traffic [SERVICE] --splits v1=0.9,v2=0.1` to route percentages. No external load balancer needed. Blue-green with Cloud Load Balancing (C) is valid for GKE/Compute Engine but requires extra infrastructure for App Engine. Cloud Run revisions (D) is correct for Cloud Run, not App Engine. The exam tests whether you know which platform has which native capability."
+    },
+    {
+      "id": 11,
+      "domain": "Compute Engine",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "easy",
+      "text": "You are running a batch job that processes data once a day at midnight and takes approximately 2 hours to complete. The job is fault-tolerant and can be restarted. Which Compute Engine option minimizes cost?",
+      "options": {
+        "A": "n2-standard-4 on-demand instances",
+        "B": "n2-standard-4 reserved instances (1-year commitment)",
+        "C": "Spot VMs (formerly preemptible VMs)",
+        "D": "Sole-tenant nodes"
+      },
+      "answer": "C",
+      "explanation": "Spot VMs (formerly preemptible) offer up to 91% discount over on-demand prices. The two required conditions are both met: (1) fault-tolerant — the job can be restarted if preempted, and (2) the runtime is under 24 hours. For a 2-hour batch job at midnight, even if preempted once, it can restart and complete before morning. Committed use (B) makes sense for always-on workloads. Sole-tenant nodes (D) are for licensing/compliance isolation and cost more."
+    },
+    {
+      "id": 12,
+      "domain": "IAM & Security",
+      "section": "Configuring access and security",
+      "difficulty": "medium",
+      "text": "Your organization wants to ensure that no Cloud Storage buckets in any project can be made publicly accessible. How do you enforce this at scale?",
+      "options": {
+        "A": "Set the Public access prevention policy on every bucket individually",
+        "B": "Apply an Organization Policy constraint that prevents public IAM grants on Cloud Storage",
+        "C": "Enable VPC Service Controls on all projects",
+        "D": "Create a Cloud Armor policy blocking anonymous access"
+      },
+      "answer": "B",
+      "explanation": "Organization Policies are the correct mechanism for enforcing guardrails at scale across all projects. The constraint `storage.publicAccessPrevention` when set to `enforced` at the org level prevents allUsers and allAuthenticatedUsers from being granted on any bucket in any project. Setting it bucket-by-bucket (A) doesn't scale and misses new buckets. VPC Service Controls (C) restrict API access by network perimeter, not public IAM. Cloud Armor (D) is a network-layer control, not an IAM control."
+    },
+    {
+      "id": 13,
+      "domain": "GKE",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to expose an internal microservice running in GKE to other services within the same cluster, but not to the internet. Which Kubernetes resource type should you use?",
+      "options": {
+        "A": "LoadBalancer Service",
+        "B": "Ingress with a global external HTTP(S) load balancer",
+        "C": "ClusterIP Service",
+        "D": "NodePort Service"
+      },
+      "answer": "C",
+      "explanation": "ClusterIP is the default Service type. It assigns a virtual IP reachable only from within the cluster — perfect for service-to-service communication. LoadBalancer (A) provisions a Google Cloud external LB with a public IP. Ingress (B) routes external HTTP/HTTPS traffic to backend services via an external LB. NodePort (D) exposes a port on every node, accessible from outside the cluster if the node IP is reachable. For internal-only cluster communication: always ClusterIP."
+    },
+    {
+      "id": 14,
+      "domain": "Storage & Databases",
+      "section": "Planning and configuring a cloud solution",
+      "difficulty": "medium",
+      "text": "Your application stores user profile images uploaded by clients. Images are accessed frequently for the first 30 days, then rarely accessed. You want to minimize storage costs while maintaining availability. What should you configure?",
+      "options": {
+        "A": "Store all images in Cloud Storage Nearline class",
+        "B": "Store all images in Cloud Storage Standard class",
+        "C": "Use Object Lifecycle Management to transition objects to Coldline after 30 days",
+        "D": "Use Object Lifecycle Management to transition objects to Nearline after 30 days"
+      },
+      "answer": "D",
+      "explanation": "Cloud Storage classes by access frequency: Standard (frequent), Nearline (less than once/month, 30-day minimum storage), Coldline (less than once/quarter, 90-day minimum), Archive (less than once/year, 365-day minimum). 'Rarely accessed after 30 days' maps to Nearline — not Coldline. Coldline would be excessive and has higher retrieval costs if the images are accessed at all. Object Lifecycle Management automates the transition without manual intervention. Start in Standard, transition to Nearline at day 30."
+    },
+    {
+      "id": 15,
+      "domain": "Monitoring & Logging",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to be alerted when the error rate of your Cloud Run service exceeds 5% over a 5-minute window. What is the correct approach?",
+      "options": {
+        "A": "Create a log-based metric from Cloud Logging, then create an alerting policy on that metric",
+        "B": "Set up a Cloud Scheduler job that queries logs every 5 minutes",
+        "C": "Enable Cloud Trace and set a threshold on trace latency",
+        "D": "Use Cloud Profiler to detect error rate anomalies"
+      },
+      "answer": "A",
+      "explanation": "Log-based metrics convert log entries into numeric Cloud Monitoring metrics. You create a counter metric filtering for HTTP 5xx status codes, then create an alerting policy that fires when error_rate > 5% over a 5-minute window. This is the standard GCP pattern for log-derived alerting. Cloud Scheduler (B) is a cron service, not a monitoring tool. Cloud Trace (C) measures latency, not error rates. Cloud Profiler (D) profiles code performance."
+    },
+    {
+      "id": 16,
+      "domain": "Compute Engine",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "A legacy application requires a specific version of an operating system and must run on dedicated physical hardware for licensing compliance. Which Compute Engine feature fulfills this requirement?",
+      "options": {
+        "A": "Custom machine types",
+        "B": "Spot VMs",
+        "C": "Sole-tenant nodes",
+        "D": "Confidential VMs"
+      },
+      "answer": "C",
+      "explanation": "Sole-tenant nodes are physical Compute Engine servers dedicated exclusively to your project — no other customer's VMs share the host. This satisfies: (1) software licenses tied to physical sockets/cores (BYOL), and (2) compliance requirements prohibiting multi-tenancy. Custom machine types (A) let you pick CPU/RAM ratios but run on shared hardware. Spot VMs (B) are preemptible discount instances — opposite of dedicated. Confidential VMs (D) encrypt data in-use via AMD SEV, addressing data confidentiality, not hardware dedication."
+    },
+    {
+      "id": 17,
+      "domain": "Deployment",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "hard",
+      "text": "You use Cloud Build to build container images. You want to ensure that only images built by your approved Cloud Build pipeline can be deployed to your GKE cluster. Which service enforces this?",
+      "options": {
+        "A": "Binary Authorization",
+        "B": "Cloud Armor",
+        "C": "VPC Service Controls",
+        "D": "Container Analysis"
+      },
+      "answer": "A",
+      "explanation": "Binary Authorization is a deploy-time security control for GKE. It requires that container images have a cryptographic attestation (signed by a trusted authority) before they can be deployed. You configure Cloud Build to attest images after a successful build. The GKE admission controller then rejects any image without the required attestation. Cloud Armor (B) is a WAF/DDoS protection for inbound network traffic — unrelated to image provenance. Container Analysis (D) scans for vulnerabilities but doesn't enforce deployment policy. VPC Service Controls (C) restrict API access by network perimeter."
+    },
+    {
+      "id": 18,
+      "domain": "Networking",
+      "section": "Setting up a cloud solution environment",
+      "difficulty": "medium",
+      "text": "You have multiple GCP projects and want to share a single VPC network across all of them to simplify network management and reduce IP address consumption. What should you implement?",
+      "options": {
+        "A": "VPC Peering between all projects",
+        "B": "Shared VPC with a host project",
+        "C": "Cloud Interconnect with a transit VPC",
+        "D": "Multiple independent VPCs with Private Service Connect"
+      },
+      "answer": "B",
+      "explanation": "Shared VPC lets an organization designate a host project whose VPC subnets are shared with service projects. All VMs in service projects use the host project's network, giving you centralized network management, unified firewall rules, and efficient IP usage — no duplication. VPC Peering (A) connects independent VPCs but each project still manages its own network, and peering is not transitive. Cloud Interconnect (C) is for on-premises connectivity. Private Service Connect (D) is for accessing managed services privately."
+    },
+    {
+      "id": 19,
+      "domain": "Storage & Databases",
+      "section": "Planning and configuring a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to store session state for a web application with sub-millisecond read latency and the ability to set TTL on entries automatically. Which managed service fits best?",
+      "options": {
+        "A": "Cloud SQL (PostgreSQL)",
+        "B": "Firestore",
+        "C": "Memorystore for Redis",
+        "D": "Cloud Bigtable"
+      },
+      "answer": "C",
+      "explanation": "Memorystore for Redis is a fully managed in-memory data store. Redis operates entirely in RAM, delivering sub-millisecond latency. Native TTL support (`SET key value EX seconds`) automatically expires session entries. This is the industry standard for session caching. Firestore (B) is a NoSQL document database with millisecond-range latency — not sub-millisecond. Cloud SQL (A) is a disk-based relational DB, latency in tens of milliseconds. Bigtable (D) is for high-throughput analytical/time-series workloads. The keyword 'sub-millisecond' always points to an in-memory store."
+    },
+    {
+      "id": 20,
+      "domain": "IAM & Security",
+      "section": "Configuring access and security",
+      "difficulty": "easy",
+      "text": "An auditor needs to review all administrative actions performed on GCP resources over the past 90 days across your organization. Where do you find this information?",
+      "options": {
+        "A": "Cloud Monitoring metrics explorer",
+        "B": "Cloud Audit Logs — Admin Activity logs",
+        "C": "VPC Flow Logs",
+        "D": "Cloud Trace timeline"
+      },
+      "answer": "B",
+      "explanation": "Cloud Audit Logs records who did what, where, and when on GCP resources. Admin Activity logs capture administrative actions (creating, modifying, deleting resources, changing IAM policies) and are always on, retained for 400 days. They are the authoritative source for compliance audits. VPC Flow Logs (C) record network traffic metadata. Cloud Monitoring (A) tracks metrics. Cloud Trace (D) records request latency."
+    },
+    {
+      "id": 21,
+      "domain": "GKE",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "medium",
+      "text": "Your GKE nodes are consistently running at 85% CPU. New Pods are failing to schedule. What is the correct action to resolve this without changing the number of nodes manually?",
+      "options": {
+        "A": "Enable the Horizontal Pod Autoscaler (HPA) on the Deployment",
+        "B": "Enable the Cluster Autoscaler on the node pool",
+        "C": "Increase the CPU request limit in the Pod spec",
+        "D": "Add a node affinity rule to spread Pods evenly"
+      },
+      "answer": "B",
+      "explanation": "The Cluster Autoscaler automatically adds nodes when Pods are in Pending state due to insufficient resources, and removes nodes when they are underutilized. The problem is at the node layer (not enough node capacity), so the fix is at the node layer. HPA (A) adds more Pod replicas — but if nodes are already full, more Pods will also be Pending, making the problem worse. Increasing CPU requests (C) makes each Pod demand more resources, further reducing schedulability. Node affinity rules (D) change Pod placement preferences but don't create capacity."
+    },
+    {
+      "id": 22,
+      "domain": "Storage & Databases",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to migrate an on-premises MySQL database to Google Cloud with minimal downtime and zero data loss during cutover. Which approach does Google recommend?",
+      "options": {
+        "A": "Export a mysqldump file, copy to Cloud Storage, import into Cloud SQL",
+        "B": "Use Database Migration Service with continuous replication",
+        "C": "Create a Cloud SQL instance and restore from a nightly backup",
+        "D": "Use Dataflow to stream CDC events from on-premises MySQL to Cloud SQL"
+      },
+      "answer": "B",
+      "explanation": "Database Migration Service (DMS) is Google's managed migration service for MySQL, PostgreSQL, and SQL Server. It establishes continuous replication via binlog, so the Cloud SQL instance stays in sync with on-premises until you're ready to cut over — achieving minimal downtime and zero data loss. mysqldump (A) requires downtime during the export window and causes data loss for transactions during migration. A nightly backup (C) guarantees data loss of up to 24 hours."
+    },
+    {
+      "id": 23,
+      "domain": "Monitoring & Logging",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "medium",
+      "text": "You want to centralize logs from all projects in your GCP organization into a single Cloud Storage bucket for long-term retention and compliance. What is the correct configuration?",
+      "options": {
+        "A": "Create a log sink at the project level in each project",
+        "B": "Create an aggregated log sink at the organization level",
+        "C": "Enable Cloud Monitoring metrics export for all projects",
+        "D": "Use Pub/Sub to forward logs from each project to a central topic"
+      },
+      "answer": "B",
+      "explanation": "Aggregated log sinks (also called organization-level sinks) capture logs from all projects, folders, or the entire organization in a single configuration. You create one sink at the organization level with destination set to a Cloud Storage bucket, and it automatically includes logs from all child resources. Project-level sinks (A) require one configuration per project and miss new projects. Pub/Sub aggregation (D) would work but requires additional infrastructure to read from Pub/Sub and write to Storage. Cloud Monitoring metrics export (C) exports metrics, not logs."
+    },
+    {
+      "id": 24,
+      "domain": "IAM & Security",
+      "section": "Configuring access and security",
+      "difficulty": "easy",
+      "text": "You are creating a service account for a Cloud Run service that needs to read from a specific BigQuery dataset. Following least privilege, what role should you grant?",
+      "options": {
+        "A": "roles/bigquery.admin on the project",
+        "B": "roles/bigquery.dataViewer on the specific dataset",
+        "C": "roles/bigquery.user on the project",
+        "D": "roles/viewer on the project"
+      },
+      "answer": "B",
+      "explanation": "roles/bigquery.dataViewer grants read access (list and get tables, read data) on the resource it's applied to. Granting it at the dataset level (not project level) limits the scope to only that dataset. roles/bigquery.admin (A) grants full control over all BigQuery resources. roles/bigquery.user (C) allows running jobs and accessing datasets the user has been explicitly granted access to — still project-scoped. roles/viewer (D) is a basic role that grants read access to ALL project resources."
+    },
+    {
+      "id": 25,
+      "domain": "Networking",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "medium",
+      "text": "Users report that your HTTPS website is slow for international visitors. Your origin is in us-central1. You want to improve global performance with minimal infrastructure changes. What should you enable?",
+      "options": {
+        "A": "Cloud Interconnect to additional regions",
+        "B": "Cloud CDN on your existing external HTTPS load balancer",
+        "C": "Cloud DNS with latency-based routing policies",
+        "D": "Premium network tier for your VMs"
+      },
+      "answer": "B",
+      "explanation": "Cloud CDN caches responses at Google's global edge PoPs (Points of Presence) closest to users. International visitors hit the nearest edge node instead of the origin in us-central1, dramatically reducing latency. It enables with a single checkbox on an existing Cloud Load Balancing backend service — minimal infrastructure change. Cloud Interconnect (A) is for on-premises connectivity. Cloud DNS latency routing (C) routes DNS queries to the nearest regional endpoint but doesn't cache content. Premium network tier (D) uses Google's backbone for egress but doesn't cache at the edge."
+    },
+    {
+      "id": 26,
+      "domain": "Deployment",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to run a containerized job that processes a file and exits when done. The job must run to completion and you want Kubernetes to manage retries on failure. What resource should you create in GKE?",
+      "options": {
+        "A": "Deployment with restartPolicy: Always",
+        "B": "DaemonSet",
+        "C": "StatefulSet",
+        "D": "Job with restartPolicy: OnFailure"
+      },
+      "answer": "D",
+      "explanation": "A Kubernetes Job creates one or more Pods and ensures a specified number of them complete successfully. restartPolicy: OnFailure restarts the container within the same Pod on failure (or creates a new Pod if the node fails). This is exactly the pattern for run-to-completion batch workloads. Deployment (A) with Always restart policy keeps Pods running indefinitely — for long-running services, not batch jobs. DaemonSet (B) runs one Pod per node. StatefulSet (C) manages stateful applications with stable network identities and persistent storage."
+    },
+    {
+      "id": 27,
+      "domain": "Storage & Databases",
+      "section": "Deploying and implementing a cloud solution",
+      "difficulty": "medium",
+      "text": "Your application needs to publish events when a new object is uploaded to a Cloud Storage bucket, so downstream services can react in real time. What is the recommended pattern?",
+      "options": {
+        "A": "Poll the bucket every minute using a Cloud Scheduler job",
+        "B": "Enable Pub/Sub notifications on the Cloud Storage bucket",
+        "C": "Use Cloud Functions HTTP trigger to monitor bucket changes",
+        "D": "Create a Cloud Logging sink to export object creation events to Pub/Sub"
+      },
+      "answer": "B",
+      "explanation": "Cloud Storage has native Pub/Sub notifications. When enabled, GCS publishes a message to a Pub/Sub topic for each object event (OBJECT_FINALIZE, OBJECT_DELETE, etc.). Downstream services subscribe to the topic and react in near-real time. This is event-driven and requires no polling or additional infrastructure. Polling with Cloud Scheduler (A) adds latency and wastes resources. Cloud Functions can trigger on GCS events directly (which internally uses Pub/Sub), but option B is the more primitive/correct building block. Logging sink (D) adds unnecessary latency through the logging pipeline."
+    },
+    {
+      "id": 28,
+      "domain": "IAM & Security",
+      "section": "Configuring access and security",
+      "difficulty": "medium",
+      "text": "Your organization has a requirement that all resources must reside in specific geographic regions for data residency compliance. How do you enforce this at the organization level?",
+      "options": {
+        "A": "Tag all resources with a 'region' label and audit periodically",
+        "B": "Apply an Organization Policy with the gcp.resourceLocations constraint",
+        "C": "Configure VPC Service Controls to restrict regions",
+        "D": "Use Cloud Asset Inventory with a custom alert"
+      },
+      "answer": "B",
+      "explanation": "The Organization Policy constraint gcp.resourceLocations allows you to restrict the set of locations where Google Cloud resources can be created. Setting it at the org level means no resource in any child project or folder can be deployed outside the allowed regions — enforcement is proactive, not reactive. Labels + auditing (A) is detective control, not preventive — resources can still be created in wrong regions. VPC Service Controls (C) control network-level API access perimeters, not resource location. Cloud Asset Inventory + alerts (D) is also detective, not preventive."
+    },
+    {
+      "id": 29,
+      "domain": "Compute Engine",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "medium",
+      "text": "You need to SSH into a Compute Engine VM that has no external IP address and no bastion host. The VM has the necessary OS Login configured. What is the simplest approach?",
+      "options": {
+        "A": "Assign a temporary external IP to the VM",
+        "B": "Use Cloud Shell with gcloud compute ssh via IAP (Identity-Aware Proxy)",
+        "C": "Set up a Cloud VPN to access the private IP directly",
+        "D": "Use a NAT gateway to route SSH traffic"
+      },
+      "answer": "B",
+      "explanation": "IAP TCP forwarding allows you to tunnel SSH connections through Google's infrastructure to VMs without external IPs and without a bastion host. The command `gcloud compute ssh INSTANCE --tunnel-through-iap` establishes a secure tunnel authenticated via IAP. No external IP, no VPN, no bastion needed. IAP checks the user's IAM permissions before allowing the tunnel. This is the GCP-native zero-trust SSH access pattern. Adding a temporary external IP (A) is a security anti-pattern. VPN (C) requires significant setup for a simple SSH need."
+    },
+    {
+      "id": 30,
+      "domain": "Monitoring & Logging",
+      "section": "Ensuring successful operation of a cloud solution",
+      "difficulty": "hard",
+      "text": "You want to define an SLO for your API: 99.5% of requests must complete in under 300ms over a 30-day rolling window. In Cloud Monitoring SLO framework, what type of SLI should you configure?",
+      "options": {
+        "A": "Availability SLI based on uptime checks",
+        "B": "Latency SLI using a request-based good/bad event ratio",
+        "C": "Error rate SLI based on HTTP 5xx responses",
+        "D": "Throughput SLI measuring requests per second"
+      },
+      "answer": "B",
+      "explanation": "A request-based Latency SLI classifies each request as 'good' (completed in < 300ms) or 'bad' (exceeded threshold). The SLO then states that 99.5% of all requests must be good over the window. This is the correct SLI type for latency-based SLOs in Cloud Monitoring. Availability SLI (A) measures uptime/downtime, not latency. Error rate SLI (C) counts HTTP 5xx responses — for reliability, not speed. Throughput SLI (D) measures volume (requests/second), not whether individual requests were fast. The structure 'X% of requests must complete in under Yms' = request-based Latency SLI."
+    }
+  ]
+}
