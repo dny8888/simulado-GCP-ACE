@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GCP ACE Simulator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1117">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,6 +19,7 @@
     <span>GCP ACE Simulator</span>
   </div>
   <div class="nav-links">
+    <button class="nav-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle Theme" style="font-size:16px;">☀️</button>
     <button class="nav-btn active" id="nav-home"    onclick="goScreen('home')">Home</button>
     <button class="nav-btn"        id="nav-exam"    onclick="goScreen('exam')">Exam</button>
     <button class="nav-btn"        id="nav-errors"  onclick="goScreen('errors')">Errors <span id="err-count-badge"></span></button>
@@ -57,7 +60,7 @@
       </button>
       <button class="size-btn selected" id="btn-mode-exam" onclick="selectMode('exam')">
         <span class="big" style="font-size:20px">Prova</span>
-        <span class="sub">120 min · Sem Feedback</span>
+        <span class="sub" id="mode-exam-label">Tempo real · Sem Feedback</span>
       </button>
     </div>
 
@@ -70,7 +73,7 @@
       </button>
       <button class="size-btn" id="btn60" onclick="selectSize(60)">
         <span class="big">60</span>
-        <span class="sub">~90 min · Full</span>
+        <span class="sub">120 min · Full</span>
       </button>
     </div>
 

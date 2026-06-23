@@ -1,0 +1,16 @@
+{
+  "name": "GCP ACE Simulator",
+  "short_name": "ACE Sim",
+  "description": "Google Cloud Associate Cloud Engineer Simulator",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/5/51/Google_Cloud_logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

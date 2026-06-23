@@ -4,7 +4,7 @@
 const STORE_ERRORS  = 'gcp-ace-errors-v2';
 const STORE_HISTORY = 'gcp-ace-history-v2';
 const STORE_SESSION = 'gcp-ace-session-v2';
-const PER_PAGE = 10;
+const PER_PAGE = 1;
 
 let questions   = [];     // loaded from JSON
 let session     = null;   // current exam session
@@ -55,6 +55,11 @@ function checkActiveSession() {
 }
 
 function init() {
+  const isLight = load('gcp-ace-theme', 'dark') === 'light';
+  if (isLight) {
+    document.body.classList.add('light-theme');
+    document.getElementById('theme-btn').textContent = '🌙';
+  }
   renderDistGrid(30);
   renderHomeStats();
   renderErrorBadge();
@@ -168,7 +173,8 @@ function startExam() {
     startedAt: Date.now()
   };
   if (selectedMode === 'exam') {
-    session.endTime = Date.now() + 120 * 60 * 1000;
+    const mins = selectedSize === 30 ? 45 : 120;
+    session.endTime = Date.now() + mins * 60 * 1000;
   }
   save(STORE_SESSION, session);
   currentPage = 0;
@@ -229,7 +235,7 @@ function renderPage() {
   const pageQs = qs.slice(start, start + PER_PAGE);
 
   document.getElementById('page-info').textContent =
-    `Page ${currentPage+1} / ${totalPages}`;
+    `Questão ${currentPage+1} de ${totalPages}`;
   document.getElementById('btn-prev').disabled = currentPage === 0;
   document.getElementById('btn-next').disabled = currentPage >= totalPages-1;
 
@@ -254,7 +260,7 @@ function renderPage() {
       }
       
       const canClick = !session.finished && !(session.mode === 'practice' && ans);
-      const click = canClick ? `onclick="answer(${q.id},'${letter}')"` : '';
+      const click = canClick ? `onclick="answer(${q.id},'${letter}')" onkeydown="handleKey(event, ${q.id}, '${letter}')" tabindex="0" role="button"` : '';
       return `<div class="${cls}" ${click}>
         <span class="letter">${letter}</span>
         <span>${escHtml(text)}</span>
@@ -684,3 +690,24 @@ function toast(msg) {
    BOOT
 ══════════════════════════════════════════════ */
 loadQuestions();
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-theme');
+  save('gcp-ace-theme', isLight ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀️';
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", isLight ? "#f6f8fa" : "#0d1117");
+}
+
+function handleKey(e, qId, letter) {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    answer(qId, letter);
+  }
+}
+
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js');
+  });
+}

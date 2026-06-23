@@ -298,3 +298,19 @@ nav {
   nav { padding: 10px 14px; }
   .nav-brand span { display: none; }
 }
+
+body.light-theme {
+  --bg:       #f6f8fa;
+  --bg2:      #ffffff;
+  --bg3:      #f3f4f6;
+  --border:   #d0d7de;
+  --border2:  #afb8c1;
+  --text:     #24292f;
+  --text2:    #57606a;
+  --text3:    #6e7781;
+  --blue-dim: #ddf4ff;
+  --green-dim:#dafbe1;
+  --red-dim:  #ffebe9;
+  --yellow-dim:#fff8c5;
+}
+.opt:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
