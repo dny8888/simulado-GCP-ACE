@@ -583,7 +583,7 @@ function renderExam() {
   // Finish banner
   const banner = document.getElementById('finish-banner');
   if (session.finished) {
-    const correct = session.questions.filter(q=>session.answers[q.id]===q.answer).length;
+    const correct = session.questions.filter(q=>session.answers[q.id]?.correct).length;
     const score = Math.round(correct/total*100);
     document.getElementById('finish-score').textContent =
       `Score: ${score}% (${correct}/${total})`;
@@ -675,14 +675,13 @@ function renderPage() {
       ${actionsHTML}`;
     container.appendChild(card);
   });
-
-  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function changePage(dir) {
   currentPage += dir;
   renderPage();
   updateTitle();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function updateTitle() {
