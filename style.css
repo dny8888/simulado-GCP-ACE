@@ -314,3 +314,160 @@ body.light-theme {
   --yellow-dim:#fff8c5;
 }
 .opt:focus { outline: 2px solid var(--blue); outline-offset: 1px; }
+
+/* ── EVOLUTION CHARTS & STATS ──────────────────────── */
+.stats-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.stats-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.chart-container {
+  height: 160px;
+  width: 100%;
+  margin-top: 10px;
+}
+.theme-evolution-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+@media (min-width: 600px) {
+  .theme-evolution-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.theme-progress-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.theme-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.theme-progress-label {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.35;
+}
+.theme-progress-pct {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+.theme-progress-pct.pass { color: var(--green); }
+.theme-progress-pct.fail { color: var(--red); }
+.theme-progress-pct.empty { color: var(--text3); }
+
+.theme-progress-bar-wrap {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.theme-progress-bar {
+  height: 100%;
+  border-radius: 3px;
+}
+.theme-progress-bar.pass { background: var(--green); }
+.theme-progress-bar.fail { background: var(--red); }
+.theme-progress-bar.empty { background: transparent; }
+
+.theme-progress-sub {
+  font-size: 10px;
+  color: var(--text3);
+  text-align: right;
+}
+
+/* History Card details */
+.hist-card {
+  cursor: pointer;
+  transition: border-color .15s;
+  flex-direction: column;
+  align-items: flex-start !important;
+}
+.hist-card:hover {
+  border-color: var(--blue-dim);
+}
+.hist-card-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.hist-card-details {
+  width: 100%;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+.hist-theme-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hist-theme-list h4 {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.hist-theme-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* Accordion for grouped errors */
+.error-group {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.error-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg3);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.error-group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.error-group-content {
+  padding: 16px;
+  display: none;
+}
+.error-group.open .error-group-content {
+  display: block;
+}
+.error-group-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

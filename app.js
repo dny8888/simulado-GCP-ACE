@@ -127,7 +127,21 @@ function renderHomeStats() {
   const total = history.reduce((a,h)=>a+h.total,0);
   const correct = history.reduce((a,h)=>a+h.correct,0);
   const avgPct = history.length ? Math.round(history.reduce((a,h)=>a+h.pct,0)/history.length) : 0;
-  const errCount = Object.keys(errors).length;
+  
+  // Calculate unique error count
+  const uniqueErrorIds = new Set(Object.keys(errors).map(Number));
+  history.forEach(h => {
+    if (h.answers) {
+      Object.entries(h.answers).forEach(([qId, ans]) => {
+        const id = parseInt(qId);
+        if (!ans.correct && !(h.removedErrors && h.removedErrors.includes(id))) {
+          uniqueErrorIds.add(id);
+        }
+      });
+    }
+  });
+  const errCount = uniqueErrorIds.size;
+  
   document.getElementById('home-stats').innerHTML = `
     <div class="stat-box blue"><div class="val">${history.length}</div><div class="lbl">Exams taken</div></div>
     <div class="stat-box green"><div class="val">${correct}</div><div class="lbl">Total correct</div></div>
@@ -486,7 +500,8 @@ function finishExam(force = false) {
       ans.evaluated = true;
       session.answers[q.id] = ans;
       
-      if (!isCorrect) logErrorObj(q, ans.chosen);
+      // Exam errors are tracked inside the session answers in historyEntry.
+      // We do not add them to the global errors object to avoid duplication.
     });
   }
   
@@ -496,10 +511,35 @@ function finishExam(force = false) {
   const correct = session.questions.filter(q=>session.answers[q.id]?.correct).length;
   const pct = Math.round(correct/total*100);
 
-  history.unshift({
-    date: new Date().toLocaleString('en-US',{dateStyle:'short',timeStyle:'short'}),
-    size: total, correct, total, pct
+  // Calculate themes/sections stats
+  const themes = {};
+  session.questions.forEach(q => {
+    const ans = session.answers[q.id];
+    const section = q.section || 'Uncategorized';
+    if (!themes[section]) {
+      themes[section] = { correct: 0, total: 0 };
+    }
+    themes[section].total++;
+    if (ans && ans.correct) {
+      themes[section].correct++;
+    }
   });
+
+  const historyEntry = {
+    id: `sim-${Date.now()}`,
+    date: new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }),
+    size: total,
+    correct,
+    total,
+    pct,
+    mode: session.mode,
+    questionIds: session.questions.map(q => q.id),
+    answers: JSON.parse(JSON.stringify(session.answers)),
+    themes,
+    removedErrors: []
+  };
+
+  history.unshift(historyEntry);
   if (history.length > 50) history.pop();
   save(STORE_HISTORY, history);
 
@@ -555,79 +595,255 @@ function copyForAI(qId) {
   navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard!'));
 }
 
-function renderErrors() {
-  const list = Object.values(errors);
-  const el = document.getElementById('errors-list');
-  if (!list.length) {
-    el.innerHTML = `<div class="empty-state">
-      <div class="icon">✓</div>
-      <p>No errors logged yet.<br>Answer questions and wrong answers appear here automatically.</p>
-    </div>`;
-    return;
+let openErrorGroups = {};
+
+function toggleErrorGroup(groupId) {
+  const el = document.getElementById(groupId);
+  if (el) {
+    const isOpen = el.classList.toggle('open');
+    openErrorGroups[groupId] = isOpen;
   }
+}
 
-  // Copy-all button
-  const allText = buildAIPrompt(list);
+function filterErrorsBySession(sessionId) {
+  openErrorGroups = {};
+  openErrorGroups[`error-group-${sessionId}`] = true;
+  renderErrors();
+  setTimeout(() => {
+    const el = document.getElementById(`error-group-${sessionId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 100);
+}
 
-  el.innerHTML = `
-    <button class="btn-sm blue" style="margin-bottom:16px" onclick="copyAllForAI()">
-      📋 Copy all ${list.length} error(s) for AI analysis
-    </button>` +
-    list.map(e => `
+function getGroupErrors(sessionId) {
+  if (sessionId === 'study') {
+    return Object.values(errors);
+  }
+  const h = history.find(item => item.id === sessionId);
+  if (!h || !h.answers) return [];
+  
+  const list = [];
+  Object.entries(h.answers).forEach(([qId, ans]) => {
+    const id = Number(qId);
+    if (!ans.correct && !(h.removedErrors && h.removedErrors.includes(id))) {
+      const q = questions.find(item => item.id === id);
+      if (q) {
+        let chosenStr = 'N/A';
+        let chosenText = 'Nenhuma resposta';
+        if (ans.chosen && ans.chosen.length > 0) {
+          const arr = Array.isArray(ans.chosen) ? ans.chosen : [ans.chosen];
+          chosenStr = arr.sort().join(', ');
+          chosenText = arr.map(c => q.options[c]).join(' | ');
+        }
+        const correctArr = q.answer.split(',').map(s => s.trim());
+        const correctText = correctArr.map(c => q.options[c]).join(' | ');
+
+        list.push({
+          id: q.id,
+          question: q.text,
+          domain: q.domain,
+          options: q.options,
+          yourAnswer: chosenStr,
+          yourAnswerText: chosenText,
+          correct: q.answer,
+          correctText: correctText,
+          explanation: q.explanation || ''
+        });
+      }
+    }
+  });
+  return list;
+}
+
+function copyGroupErrorsForAI(sessionId) {
+  const list = getGroupErrors(sessionId);
+  if (!list.length) return;
+  const text = buildAIPrompt(list);
+  navigator.clipboard.writeText(text).then(() => toast(`Copiado ${list.length} erro(s) para o clipboard!`));
+}
+
+function renderErrorCard(e, sessionId) {
+  return `
     <div class="err-card">
       <div class="err-answer-row">
         <span class="q-tag dom" style="display:inline-block;margin-bottom:6px">${escHtml(e.domain)}</span>
       </div>
       <div class="eq">${escHtml(e.question)}</div>
       <div class="err-answer-row">
-        <span class="err-yours">✗ Your answer: ${e.yourAnswer}. ${escHtml(e.yourAnswerText||'')}</span>
-        <span class="err-correct">✓ Correct: ${e.correct}. ${escHtml(e.correctText||'')}</span>
+        <span class="err-yours">✗ Sua resposta: ${escHtml(e.yourAnswer)}. ${escHtml(e.yourAnswerText || '')}</span>
+        <span class="err-correct">✓ Correta: ${escHtml(e.correct)}. ${escHtml(e.correctText || '')}</span>
       </div>
       <div class="err-actions">
-        <button class="btn-sm" onclick="toggleErrExp(${e.id})">💡 Explanation</button>
-        <button class="btn-sm blue" onclick="copySingleForAI(${e.id})">📋 Copy for AI</button>
-        <button class="btn-sm active" onclick="removeError(${e.id})">✕ Remove</button>
+        <button class="btn-sm" onclick="toggleErrExp(${e.id}, '${sessionId}')">💡 Explicação</button>
+        <button class="btn-sm blue" onclick="copySingleForAI(${e.id}, '${sessionId}')">📋 Copiar para IA</button>
+        <button class="btn-sm active" onclick="removeError(${e.id}, '${sessionId}')">✕ Remover</button>
       </div>
-      <div class="explanation" id="errexp-${e.id}">
-        <strong>Explanation:</strong> ${escHtml(e.explanation||'No explanation available.')}
+      <div class="explanation" id="errexp-${sessionId}-${e.id}">
+        <strong>Explicação:</strong> ${escHtml(e.explanation || 'Sem explicação disponível.')}
       </div>
-    </div>`).join('');
+    </div>
+  `;
 }
 
-function toggleErrExp(id) {
-  const el = document.getElementById(`errexp-${id}`);
+function renderErrors() {
+  const el = document.getElementById('errors-list');
+  
+  const studyErrorsList = Object.values(errors);
+  
+  const simGroups = [];
+  history.forEach(h => {
+    if (h.answers && h.mode === 'exam') {
+      const errList = getGroupErrors(h.id);
+      if (errList.length > 0) {
+        simGroups.push({
+          id: h.id,
+          date: h.date,
+          pct: h.pct,
+          correct: h.correct,
+          total: h.total,
+          mode: h.mode,
+          errors: errList
+        });
+      }
+    }
+  });
+
+  const totalErrorsCount = studyErrorsList.length + simGroups.reduce((acc, g) => acc + g.errors.length, 0);
+
+  if (totalErrorsCount === 0) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="icon">✓</div>
+      <p>Nenhum erro registrado.<br>Erros em simulados ou no Modo Estudo aparecerão aqui automaticamente.</p>
+    </div>`;
+    return;
+  }
+
+  let html = `
+    <button class="btn-sm blue" style="margin-bottom:16px; width:100%; justify-content: center;" onclick="copyAllForAI()">
+      📋 Copiar todos os ${totalErrorsCount} erro(s) para análise na IA
+    </button>
+  `;
+
+  if (studyErrorsList.length > 0) {
+    const groupId = 'error-group-study';
+    const isOpen = openErrorGroups[groupId] !== false; // open by default unless collapsed
+    
+    html += `
+      <div class="error-group ${isOpen ? 'open' : ''}" id="${groupId}">
+        <div class="error-group-header" onclick="toggleErrorGroup('${groupId}')">
+          <div class="error-group-title">
+            <span>📁 Modo Estudo (Erros Avulsos)</span>
+            <span class="badge" style="background:var(--red-dim);color:var(--red);padding:2px 6px;border-radius:10px;font-size:11px;">${studyErrorsList.length}</span>
+          </div>
+          <div class="error-group-header-actions" onclick="event.stopPropagation()">
+            <button class="btn-sm blue" onclick="copyGroupErrorsForAI('study')">📋 Copiar Grupo</button>
+          </div>
+        </div>
+        <div class="error-group-content">
+          ${studyErrorsList.map(e => renderErrorCard(e, 'study')).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  simGroups.forEach(g => {
+    const groupId = `error-group-${g.id}`;
+    const isOpen = !!openErrorGroups[groupId]; // closed by default
+    const modeLabel = g.mode === 'exam' ? 'Prova' : 'Estudo';
+
+    html += `
+      <div class="error-group ${isOpen ? 'open' : ''}" id="${groupId}">
+        <div class="error-group-header" onclick="toggleErrorGroup('${groupId}')">
+          <div class="error-group-title">
+            <span>📝 Simulado (${g.date}) - ${g.pct}% (${g.correct}/${g.total}) [${modeLabel}]</span>
+            <span class="badge" style="background:var(--red-dim);color:var(--red);padding:2px 6px;border-radius:10px;font-size:11px;">${g.errors.length}</span>
+          </div>
+          <div class="error-group-header-actions" onclick="event.stopPropagation()">
+            <button class="btn-sm blue" onclick="copyGroupErrorsForAI('${g.id}')">📋 Copiar Grupo</button>
+          </div>
+        </div>
+        <div class="error-group-content">
+          ${g.errors.map(e => renderErrorCard(e, g.id)).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  el.innerHTML = html;
+}
+
+function toggleErrExp(id, sessionId) {
+  const el = document.getElementById(`errexp-${sessionId}-${id}`);
   if (el) el.classList.toggle('show');
 }
 
-function removeError(id) {
-  delete errors[id];
-  save(STORE_ERRORS, errors);
+function removeError(id, sessionId) {
+  if (sessionId === 'study') {
+    delete errors[id];
+    save(STORE_ERRORS, errors);
+  } else {
+    const h = history.find(item => item.id === sessionId);
+    if (h) {
+      if (!h.removedErrors) h.removedErrors = [];
+      h.removedErrors.push(id);
+      save(STORE_HISTORY, history);
+    }
+  }
   renderErrorBadge();
   renderErrors();
   renderHomeStats();
 }
 
 function clearErrors() {
-  if (!confirm('Clear all logged errors?')) return;
+  if (!confirm('Deseja limpar todos os logs de erro (incluindo erros de simulados finalizados)?')) return;
+  
   errors = {};
   save(STORE_ERRORS, errors);
+  
+  history.forEach(h => {
+    if (h.answers) {
+      const qIds = Object.keys(h.answers).map(Number);
+      h.removedErrors = qIds;
+    }
+  });
+  save(STORE_HISTORY, history);
+
   renderErrorBadge();
   renderErrors();
   renderHomeStats();
-  toast('Error log cleared');
+  toast('Log de erros limpo');
 }
 
 function copyAllForAI() {
-  const list = Object.values(errors);
-  const text = buildAIPrompt(list);
-  navigator.clipboard.writeText(text).then(()=>toast(`Copied ${list.length} errors to clipboard!`));
+  const allList = [];
+  allList.push(...Object.values(errors));
+  history.forEach(h => {
+    if (h.answers && h.mode === 'exam') {
+      allList.push(...getGroupErrors(h.id));
+    }
+  });
+
+  if (!allList.length) {
+    toast('Nenhum erro registrado.');
+    return;
+  }
+  const text = buildAIPrompt(allList);
+  navigator.clipboard.writeText(text).then(() => toast(`Copiado total de ${allList.length} erro(s) para o clipboard!`));
 }
 
-function copySingleForAI(id) {
-  const e = errors[id];
+function copySingleForAI(id, sessionId) {
+  let e;
+  if (sessionId === 'study') {
+    e = errors[id];
+  } else {
+    const list = getGroupErrors(sessionId);
+    e = list.find(item => item.id === id);
+  }
   if (!e) return;
   const text = buildAIPrompt([e]);
-  navigator.clipboard.writeText(text).then(()=>toast('Copied to clipboard!'));
+  navigator.clipboard.writeText(text).then(() => toast('Copiado para o clipboard!'));
 }
 
 function buildAIPrompt(list) {
@@ -662,7 +878,18 @@ function buildAIPrompt(list) {
 }
 
 function renderErrorBadge() {
-  const count = Object.keys(errors).length;
+  const uniqueErrorIds = new Set(Object.keys(errors).map(Number));
+  history.forEach(h => {
+    if (h.mode === 'exam' && h.answers) {
+      Object.entries(h.answers).forEach(([qId, ans]) => {
+        const id = parseInt(qId);
+        if (!ans.correct && !(h.removedErrors && h.removedErrors.includes(id))) {
+          uniqueErrorIds.add(id);
+        }
+      });
+    }
+  });
+  const count = uniqueErrorIds.size;
   const badge = document.getElementById('err-count-badge');
   badge.textContent = count ? `(${count})` : '';
   badge.style.color = 'var(--red)';
@@ -671,25 +898,71 @@ function renderErrorBadge() {
 /* ══════════════════════════════════════════════
    HISTORY
 ══════════════════════════════════════════════ */
+let openHistoryDetails = {};
+
+function toggleHistoryDetails(id) {
+  openHistoryDetails[id] = !openHistoryDetails[id];
+  const el = document.getElementById(`hist-details-${id}`);
+  if (el) {
+    el.style.display = openHistoryDetails[id] ? 'block' : 'none';
+  }
+}
+
 function renderHistory() {
   const el = document.getElementById('history-list');
+  const statsCard = document.getElementById('history-stats-card');
+  
   if (!history.length) {
+    statsCard.style.display = 'none';
     el.innerHTML = `<div class="empty-state">
       <div class="icon">📋</div>
-      <p>No exams completed yet.</p>
+      <p>Nenhum simulado finalizado ainda.</p>
     </div>`;
     return;
   }
-  el.innerHTML = history.map(h => `
-    <div class="hist-card">
-      <span class="hist-date">${h.date}</span>
-      <span class="hist-score ${h.pct>=70?'pass':'fail'}">${h.pct}%</span>
-      <span class="hist-detail">
-        <span>${h.correct}/${h.total} correct</span>
-        <span>${h.size} questions</span>
-        <span style="color:${h.pct>=70?'var(--green)':'var(--red)'}">${h.pct>=70?'PASS':'FAIL'}</span>
-      </span>
-    </div>`).join('');
+  
+  statsCard.style.display = 'block';
+  drawTotalEvolutionChart();
+  drawThemeEvolutionGrid();
+  
+  el.innerHTML = history.map(h => {
+    const isExpanded = openHistoryDetails[h.id] ? 'block' : 'none';
+    const modeLabel = h.mode === 'exam' ? 'Prova' : 'Estudo';
+    
+    // Build theme layout
+    let themesHTML = '';
+    if (h.themes) {
+      themesHTML = Object.entries(h.themes).map(([theme, val]) => {
+        const p = val.total ? Math.round(val.correct/val.total*100) : 0;
+        return `<div class="hist-theme-row">
+          <span>${theme}</span>
+          <strong>${p}% (${val.correct}/${val.total})</strong>
+        </div>`;
+      }).join('');
+    }
+    
+    return `
+    <div class="hist-card" onclick="toggleHistoryDetails('${h.id}')">
+      <div class="hist-card-summary">
+        <span class="hist-date">${h.date}</span>
+        <span class="hist-score ${h.pct>=70?'pass':'fail'}">${h.pct}%</span>
+        <span class="hist-detail">
+          <span>${h.correct}/${h.total} acertos</span>
+          <span>${h.size} questões (${modeLabel})</span>
+          <span style="color:${h.pct>=70?'var(--green)':'var(--red)'}">${h.pct>=70?'PASS':'FAIL'}</span>
+        </span>
+      </div>
+      <div class="hist-card-details" id="hist-details-${h.id}" style="display:${isExpanded};" onclick="event.stopPropagation()">
+        <div class="hist-theme-list">
+          <h4>Desempenho por Tema:</h4>
+          ${themesHTML || '<p style="font-size:11px;color:var(--text3)">Estatísticas por tema indisponíveis para este simulado antigo.</p>'}
+        </div>
+        <button class="btn-sm blue" style="margin-top:12px; width:100%; justify-content: center;" onclick="goScreen('errors'); filterErrorsBySession('${h.id}');">
+          Ver erros desta iteração →
+        </button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function clearHistory() {
@@ -740,6 +1013,178 @@ function toast(msg) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>el.classList.remove('show'), 2500);
+}
+
+/* ══════════════════════════════════════════════
+   EVOLUTION CHARTS & STATS
+══════════════════════════════════════════════ */
+function drawTotalEvolutionChart() {
+  const container = document.getElementById('total-evolution-chart');
+  if (!container) return;
+
+  const last10 = history.slice(0, 10).reverse();
+  const N = last10.length;
+
+  const width = 500;
+  const height = 160;
+  const paddingLeft = 45;
+  const paddingRight = 20;
+  const paddingTop = 15;
+  const paddingBottom = 25;
+  const effW = width - paddingLeft - paddingRight;
+  const effH = height - paddingTop - paddingBottom;
+  const baseY = height - paddingBottom; // 135
+
+  const points = last10.map((h, i) => {
+    const x = N === 1 ? paddingLeft + effW / 2 : paddingLeft + (i / (N - 1)) * effW;
+    const y = baseY - (h.pct / 100) * effH;
+    return { x, y, pct: h.pct, date: h.date };
+  });
+
+  // Grid and Y labels
+  let svgContent = `
+    <defs>
+      <linearGradient id="chart-grad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--blue)" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="var(--blue)" stop-opacity="0.0"/>
+      </linearGradient>
+    </defs>
+    <!-- Y Grid Lines -->
+    <line x1="${paddingLeft}" y1="15" x2="${width - paddingRight}" y2="15" stroke="var(--border)" stroke-dasharray="3,3" />
+    <line x1="${paddingLeft}" y1="51" x2="${width - paddingRight}" y2="51" stroke="var(--green)" stroke-dasharray="4,4" stroke-width="1.2" />
+    <text x="${width - paddingRight}" y="47" text-anchor="end" fill="var(--green)" font-size="9" font-weight="600">Meta (70%)</text>
+    <line x1="${paddingLeft}" y1="75" x2="${width - paddingRight}" y2="75" stroke="var(--border)" stroke-dasharray="3,3" />
+    <line x1="${paddingLeft}" y1="${baseY}" x2="${width - paddingRight}" y2="${baseY}" stroke="var(--text3)" stroke-width="1" />
+
+    <!-- Y Labels -->
+    <text x="35" y="19" text-anchor="end" fill="var(--text3)" font-size="9" font-family="var(--mono)">100%</text>
+    <text x="35" y="55" text-anchor="end" fill="var(--green)" font-size="9" font-family="var(--mono)" font-weight="600">70%</text>
+    <text x="35" y="79" text-anchor="end" fill="var(--text3)" font-size="9" font-family="var(--mono)">50%</text>
+    <text x="35" y="139" text-anchor="end" fill="var(--text3)" font-size="9" font-family="var(--mono)">0%</text>
+  `;
+
+  if (points.length > 0) {
+    let linePathD = '';
+    let areaPathD = '';
+
+    points.forEach((p, i) => {
+      if (i === 0) {
+        linePathD += `M ${p.x},${p.y}`;
+        areaPathD += `M ${p.x},${baseY} L ${p.x},${p.y}`;
+      } else {
+        linePathD += ` L ${p.x},${p.y}`;
+        areaPathD += ` L ${p.x},${p.y}`;
+      }
+    });
+
+    if (points.length === 1) {
+      linePathD = `M ${points[0].x - 15},${points[0].y} L ${points[0].x + 15},${points[0].y}`;
+      areaPathD = `M ${points[0].x - 15},${baseY} L ${points[0].x - 15},${points[0].y} L ${points[0].x + 15},${points[0].y} L ${points[0].x + 15},${baseY} Z`;
+    } else {
+      areaPathD += ` L ${points[points.length - 1].x},${baseY} Z`;
+    }
+
+    svgContent += `
+      <!-- Area Fill -->
+      <path d="${areaPathD}" fill="url(#chart-grad)" />
+      <!-- Line -->
+      <path d="${linePathD}" fill="none" stroke="var(--blue)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+    `;
+
+    points.forEach(p => {
+      const shortDate = p.date.split(',')[0].trim().slice(0, 5); // DD/MM
+      svgContent += `
+        <!-- X Label -->
+        <text x="${p.x}" y="152" text-anchor="middle" fill="var(--text3)" font-size="9" font-family="var(--mono)">${shortDate}</text>
+        
+        <!-- Score Label -->
+        <text x="${p.x}" y="${p.y - 8}" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700" font-family="var(--mono)">${p.pct}%</text>
+        
+        <!-- Dot Halo -->
+        <circle cx="${p.x}" cy="${p.y}" r="6" fill="var(--blue)" opacity="0.15" />
+        <!-- Dot -->
+        <circle cx="${p.x}" cy="${p.y}" r="4" fill="var(--bg)" stroke="var(--blue)" stroke-width="2.5" />
+      `;
+    });
+  }
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" style="width:100%; height:100%; overflow:visible;">
+      ${svgContent}
+    </svg>
+  `;
+}
+
+function drawThemeEvolutionGrid() {
+  const container = document.getElementById('theme-evolution-grid');
+  if (!container) return;
+
+  const sections = [
+    'Setting up a cloud solution environment',
+    'Planning and configuring a cloud solution',
+    'Deploying and implementing a cloud solution',
+    'Ensuring successful operation of a cloud solution',
+    'Configuring access and security'
+  ];
+
+  const cumulative = {};
+  sections.forEach(s => {
+    cumulative[s] = { correct: 0, total: 0 };
+  });
+
+  history.forEach(h => {
+    if (h.themes) {
+      Object.entries(h.themes).forEach(([section, val]) => {
+        if (!cumulative[section]) {
+          cumulative[section] = { correct: 0, total: 0 };
+        }
+        cumulative[section].correct += val.correct;
+        cumulative[section].total += val.total;
+      });
+    }
+  });
+
+  const translationMap = {
+    'Setting up a cloud solution environment': '1. Configurando o Ambiente de Nuvem',
+    'Planning and configuring a cloud solution': '2. Planejando e Configurando Soluções',
+    'Deploying and implementing a cloud solution': '3. Implantando e Implementando Soluções',
+    'Ensuring successful operation of a cloud solution': '4. Garantindo a Operação Bem-sucedida',
+    'Configuring access and security': '5. Configurando Acesso e Segurança'
+  };
+
+  let html = '';
+  const allSections = Array.from(new Set([...sections, ...Object.keys(cumulative)]));
+
+  allSections.forEach(section => {
+    const stats = cumulative[section] || { correct: 0, total: 0 };
+    const hasData = stats.total > 0;
+    const pct = hasData ? Math.round((stats.correct / stats.total) * 100) : 0;
+    
+    let statusClass = 'empty';
+    if (hasData) {
+      statusClass = pct >= 70 ? 'pass' : 'fail';
+    }
+
+    const title = translationMap[section] || section;
+    const subText = hasData 
+      ? `${stats.correct} de ${stats.total} acertos` 
+      : 'Nenhuma questão respondida';
+
+    html += `
+      <div class="theme-progress-card">
+        <div class="theme-progress-header">
+          <div class="theme-progress-label">${escHtml(title)}</div>
+          <div class="theme-progress-pct ${statusClass}">${hasData ? pct + '%' : '--'}</div>
+        </div>
+        <div class="theme-progress-bar-wrap">
+          <div class="theme-progress-bar ${statusClass}" style="width: ${hasData ? pct : 0}%"></div>
+        </div>
+        <div class="theme-progress-sub">${subText}</div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
 }
 
 /* ══════════════════════════════════════════════
