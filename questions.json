@@ -6,8 +6,8 @@
       "Setting up a cloud solution environment": 0.17,
       "Planning and configuring a cloud solution": 0.17,
       "Deploying and implementing a cloud solution": 0.25,
-      "Ensuring successful operation of a cloud solution": 0.20,
-      "Configuring access and security": 0.20
+      "Ensuring successful operation of a cloud solution": 0.2,
+      "Configuring access and security": 0.2
     },
     "domain_map": {
       "Compute Engine": "Deploying and implementing",
@@ -56,7 +56,7 @@
       "domain": "Networking",
       "section": "Planning and configuring a cloud solution",
       "difficulty": "medium",
-      "text": "You need to establish a private connection between your on-premises network and Google Cloud without traversing the public internet. Traffic volume is low and an SLA is not critical. Which option is most cost-effective?",
+      "text": "You need to establish a secure connection between your on-premises network and Google Cloud. Traffic volume is low and a Google-backed SLA is not critical. Which option is most cost-effective?",
       "options": {
         "A": "Cloud Interconnect (Dedicated)",
         "B": "Cloud Interconnect (Partner)",
@@ -64,7 +64,7 @@
         "D": "Cloud CDN"
       },
       "answer": "C",
-      "explanation": "Cloud VPN creates an IPSec encrypted tunnel and is the most cost-effective option for low-volume traffic without SLA requirements. The traffic is private (encrypted tunnel) even though it travels over the internet infrastructure. Cloud Interconnect (A/B) provides physical private circuits with SLA guarantees but at significantly higher cost — justified only for high bandwidth or strict SLA needs. The keywords 'low volume' and 'SLA not critical' are the filters that point to VPN."
+      "explanation": "Cloud VPN creates an IPSec encrypted tunnel over the public internet and is the most cost-effective option for low-volume traffic without strict SLA requirements. Although traffic traverses the public internet, it is encrypted end-to-end. Cloud Interconnect (A/B) provides dedicated private circuits that do NOT traverse the public internet and include SLA guarantees, but at significantly higher cost — justified only for high bandwidth or strict SLA needs. Cloud CDN (D) is a content delivery network, not a connectivity solution."
     },
     {
       "id": 4,
@@ -146,15 +146,15 @@
       "domain": "Networking",
       "section": "Planning and configuring a cloud solution",
       "difficulty": "medium",
-      "text": "You want to restrict outbound internet access from VM instances in a VPC but allow them to access Google APIs and services. What should you configure?",
+      "text": "You have VM instances without external IP addresses in a VPC subnet. They need to access Google APIs and services, and occasionally download OS updates from the internet. What should you configure?",
       "options": {
-        "A": "A Cloud NAT gateway and Private Google Access",
+        "A": "Enable Private Google Access on the subnet and configure Cloud NAT for internet egress",
         "B": "A Cloud Load Balancer with SSL policy",
         "C": "VPC Service Controls with an access policy",
         "D": "A Cloud Armor security policy"
       },
       "answer": "A",
-      "explanation": "Cloud NAT provides outbound internet access for VMs without external IPs (you can restrict this per subnet). Private Google Access allows VMs without external IPs to reach Google APIs (storage.googleapis.com, etc.) through Google's internal network without traversing the internet. These two features together give you controlled, private-by-default egress. VPC Service Controls (C) restrict API access by perimeter, not egress routing. Cloud Armor (D) is a WAF/DDoS shield for inbound traffic."
+      "explanation": "VMs without external IPs cannot reach the internet or Google APIs by default. Private Google Access allows these VMs to reach Google APIs (storage.googleapis.com, etc.) through Google's internal network. Cloud NAT provides controlled outbound internet access (e.g., for OS updates) without assigning external IPs. Together, they provide both Google API access and selective internet egress. VPC Service Controls (C) create security perimeters to prevent data exfiltration via APIs, not egress routing. Cloud Armor (D) is a WAF/DDoS shield for inbound traffic."
     },
     {
       "id": 10,
@@ -184,7 +184,7 @@
         "D": "Sole-tenant nodes"
       },
       "answer": "C",
-      "explanation": "Spot VMs (formerly preemptible) offer up to 91% discount over on-demand prices. The two required conditions are both met: (1) fault-tolerant — the job can be restarted if preempted, and (2) the runtime is under 24 hours. For a 2-hour batch job at midnight, even if preempted once, it can restart and complete before morning. Committed use (B) makes sense for always-on workloads. Sole-tenant nodes (D) are for licensing/compliance isolation and cost more."
+      "explanation": "Spot VMs (formerly preemptible) offer up to 91% discount over on-demand prices. Unlike legacy preemptible VMs, Spot VMs have no maximum runtime limit. The key requirement is fault tolerance — the job can be restarted if preempted. For a 2-hour batch job at midnight, even if preempted once, it can restart and complete before morning, making Spot VMs ideal. Committed use (B) makes sense for always-on workloads. Sole-tenant nodes (D) are for licensing/compliance isolation and cost more."
     },
     {
       "id": 12,
@@ -379,7 +379,7 @@
         "D": "roles/viewer on the project"
       },
       "answer": "B",
-      "explanation": "roles/bigquery.dataViewer grants read access (list and get tables, read data) on the resource it's applied to. Granting it at the dataset level (not project level) limits the scope to only that dataset. roles/bigquery.admin (A) grants full control over all BigQuery resources. roles/bigquery.user (C) allows running jobs and accessing datasets the user has been explicitly granted access to — still project-scoped. roles/viewer (D) is a basic role that grants read access to ALL project resources."
+      "explanation": "roles/bigquery.dataViewer grants read access (list and get tables, read data) on the resource it's applied to. Granting it at the dataset level (not project level) limits the scope to only that dataset. roles/bigquery.admin (A) grants full control over all BigQuery resources. roles/bigquery.user (C) grants the ability to run query jobs and create datasets at the project level, but does NOT grant read access to data in any existing dataset — a separate data-level role is still required. roles/viewer (D) is a basic role that grants read access to ALL project resources."
     },
     {
       "id": 25,
@@ -390,11 +390,11 @@
       "options": {
         "A": "Cloud Interconnect to additional regions",
         "B": "Cloud CDN on your existing external HTTPS load balancer",
-        "C": "Cloud DNS with latency-based routing policies",
+        "C": "Cloud DNS with geolocation routing policies",
         "D": "Premium network tier for your VMs"
       },
       "answer": "B",
-      "explanation": "Cloud CDN caches responses at Google's global edge PoPs (Points of Presence) closest to users. International visitors hit the nearest edge node instead of the origin in us-central1, dramatically reducing latency. It enables with a single checkbox on an existing Cloud Load Balancing backend service — minimal infrastructure change. Cloud Interconnect (A) is for on-premises connectivity. Cloud DNS latency routing (C) routes DNS queries to the nearest regional endpoint but doesn't cache content. Premium network tier (D) uses Google's backbone for egress but doesn't cache at the edge."
+      "explanation": "Cloud CDN caches responses at Google's global edge PoPs (Points of Presence) closest to users. International visitors hit the nearest edge node instead of the origin in us-central1, dramatically reducing latency. It enables with a single checkbox on an existing Cloud Load Balancing backend service — minimal infrastructure change. Cloud Interconnect (A) is for on-premises connectivity. Cloud DNS geolocation routing (C) routes DNS queries based on client location to regional endpoints but doesn't cache content and requires backend deployments in multiple regions. Premium network tier (D) uses Google's backbone for egress but doesn't cache at the edge."
     },
     {
       "id": 26,
@@ -503,8 +503,8 @@
     },
     {
       "id": 33,
-      "domain": "Storage & Databases",
-      "section": "Planning and configuring a cloud solution",
+      "domain": "Billing & Pricing",
+      "section": "Setting up a cloud solution environment",
       "difficulty": "easy",
       "text": "You are analyzing GCP service costs from three separate projects. You want to create service cost estimates by service type, daily and monthly, for the next six months using standard SQL. What should you do?",
       "options": {
@@ -588,8 +588,8 @@
         "C": "Package it in a container and run it on GKE using n1-standard-32 nodes",
         "D": "Run it on Compute Engine with n1-standard-1 and add an SSD persistent disk of 32 GB"
       },
-      "answer": "A",
-      "explanation": "Cloud Memorystore for Redis is a fully managed in-memory caching service. For a caching proxy that needs 32 GB in-memory and consumes almost no CPU, Memorystore provides a cost-effective managed solution without needing to provision or manage Compute Engine instances. Running a Compute Engine custom instance (B) or GKE (C) adds unnecessary infrastructure cost and management overhead."
+      "answer": "B",
+      "explanation": "A Compute Engine custom instance (6 vCPUs, 32 GB memory) is the correct choice. The application is an HTTP reverse proxy (like Varnish or NGINX) that needs to run as a process, handle HTTP connections, and cache responses in memory. A custom machine type lets you allocate exactly the memory needed (32 GB) with minimal CPU, minimizing cost. Cloud Memorystore (A) is an in-memory data store, not a reverse proxy — it cannot handle HTTP traffic. GKE with n1-standard-32 (C) massively over-provisions CPU. An n1-standard-1 with SSD (D) has only 3.75 GB RAM and disk-based caching is too slow for latency-sensitive workloads."
     },
     {
       "id": 39,
@@ -664,7 +664,7 @@
         "D": "Set autoscaling to Off, min instances to 1, max instances to 2"
       },
       "answer": "A",
-      "explanation": "Setting autoscaling to On with min=1 and max=1 ensures exactly one instance runs at all times. The MIG will recreate the instance if it fails (autohealing). Setting autoscaling to Off (B) still maintains the instance count but loses the autoscaling health management. Max of 2 (C, D) could allow a second instance to be created."
+      "explanation": "Setting autoscaling to On with min=1 and max=1 ensures exactly one instance runs at all times. The MIG will recreate the instance if it fails (autohealing). Setting autoscaling to Off (B) would also maintain 1 instance with autohealing, but autoscaling On is the recommended pattern — it ensures the MIG actively manages the target instance count through the autoscaler. Max of 2 (C, D) could allow a second instance to be created, violating the single-instance requirement."
     },
     {
       "id": 44,
@@ -739,7 +739,7 @@
         "D": "Verify that you are Billing Administrator for the billing account. Update the existing project to link it to the existing billing account."
       },
       "answer": "B",
-      "explanation": "To create a new billing account you need Billing Administrator rights. To link a billing account to a project you need Project Billing Manager rights. Option B correctly identifies that the user needs Project Billing Manager rights to link the new billing account to the existing project. Option D confuses the roles — Billing Admin alone doesn't let you link projects."
+      "explanation": "To create a new billing account you need the Billing Account Creator role (roles/billing.creator). To link a billing account to an existing project you need the Project Billing Manager role on that project. Option B is the only answer that correctly describes both actions: creating a new billing account and linking it to the existing project. Options A and D refer to an existing billing account, and option C creates a new project instead of using the existing one — none match the question's requirements."
     },
     {
       "id": 49,
@@ -888,8 +888,8 @@
         "C": "Use kubectl config get-contexts to review the output",
         "D": "Use kubectl config use-context and kubectl config view to review the output"
       },
-      "answer": "D",
-      "explanation": "kubectl config use-context switches to the desired cluster context, and kubectl config view shows the full kubeconfig including the cluster details. This achieves the goal using kubectl rather than gcloud, allowing you to inspect the cluster configuration without needing to activate the gcloud configuration."
+      "answer": "A",
+      "explanation": "gcloud config configurations describe [NAME] displays all the properties (such as project, account, region, and zone) associated with the specified configuration. This allows you to inspect an inactive configuration directly without needing to switch your active context (which would require running gcloud config configurations activate followed by gcloud config list). It is the fastest way with the fewest steps. kubectl config use-context and view (D) are for Kubernetes configuration, not gcloud configurations."
     },
     {
       "id": 59,
@@ -1318,13 +1318,13 @@
       "difficulty": "medium",
       "text": "Your GKE container emitted a huge number of logs, resulting in higher costs. You want to disable the logs quickly using the minimum number of steps. What should you do?",
       "options": {
-        "A": "Go to the Logs ingestion window in Cloud Logging, and disable the log source for the GKE container resource",
-        "B": "Go to the Logs ingestion window in Cloud Logging, and disable the log source for the GKE Cluster Operations resource",
+        "A": "In Cloud Logging, go to the Logs Router. Edit the _Default sink and add an exclusion filter for resource.type=\"k8s_container\" to exclude GKE container logs from ingestion.",
+        "B": "In Cloud Logging, go to the Logs Router. Edit the _Default sink and add an exclusion filter for resource.type=\"k8s_cluster\" to exclude GKE Cluster Operations logs from ingestion.",
         "C": "Go to the GKE console, delete existing clusters, recreate a new cluster, and clear the option to enable legacy Stackdriver Logging",
         "D": "Go to the GKE console, delete existing clusters, recreate a new cluster, and clear the option to enable legacy Stackdriver Monitoring"
       },
       "answer": "A",
-      "explanation": "Cloud Logging's log ingestion controls allow you to disable specific log sources without recreating infrastructure. Disabling the GKE container resource logs stops collecting container logs immediately with a single change — the fewest possible steps. Deleting and recreating clusters (C, D) would cause downtime and is far more disruptive."
+      "explanation": "Cloud Logging's Logs Router exclusion filters allow you to stop ingesting specific log types without recreating infrastructure. Adding an exclusion filter for resource.type=\"k8s_container\" on the _Default sink stops GKE container log ingestion immediately with minimal steps. Deleting and recreating clusters (C, D) would cause downtime and is far more disruptive."
     },
     {
       "id": 88,
@@ -1353,8 +1353,8 @@
         "C": "In GKE, create a Service of type LoadBalancer with annotation cloud.google.com/load-balancer-type: Internal. Peer the two VPCs. Configure the Compute Engine instance to use the internal load balancer address.",
         "D": "In GKE, create a Service of type LoadBalancer. Add a Cloud Armor Security Policy to the load balancer that whitelists the internal IPs. Configure the Compute Engine instance to use the load balancer address."
       },
-      "answer": "A",
-      "explanation": "An external LoadBalancer Service in GKE provisions a public IP. The Compute Engine instance in the other VPC can reach it via the public internet. This minimizes effort — no VPC peering, no proxy, no Cloud Armor needed. An internal LB (C) with VPC peering would work but requires more steps. Cloud Armor (D) adds security but doesn't simplify connectivity."
+      "answer": "C",
+      "explanation": "An Internal Load Balancer with the annotation cloud.google.com/load-balancer-type: Internal exposes the GKE service on a private IP. VPC Peering connects the two VPCs (which have no overlapping IPs) allowing the Compute Engine instance to reach the internal LB address directly. This keeps all traffic private within Google's network and is the recommended approach. An external LB (A) would work but unnecessarily exposes the service to the public internet. A proxy VM (B) adds complexity. Cloud Armor (D) adds overhead without solving the connectivity problem."
     },
     {
       "id": 90,
@@ -1683,8 +1683,8 @@
         "C": "The node pool is configured with a service account that does not have permission to pull the container image",
         "D": "The pending Pod was originally scheduled on a node that has been preempted. It is currently being rescheduled on a new node."
       },
-      "answer": "D",
-      "explanation": "Preemptible VMs can be terminated by Google with 30 seconds notice. A single-node preemptible pool means if the node gets preempted, all pods on it enter Pending state while GKE provisions a replacement node. This is a known risk of using single-node pools with preemptible VMs. Resource issues (A, B) would cause Pending from the start, not after 'a few minutes'."
+      "answer": "B",
+      "explanation": "In a GKE cluster, if a pod remains in Pending status, it most likely means that the scheduler cannot find a node with enough CPU or memory resources to schedule the pod. Option B ('Too many Pods are already running in the cluster and there are not enough resources left') is the correct answer and a common cause. While preemptible VMs (D) can be terminated, GKE will automatically attempt to reschedule the Pod; if resources are available, it will run. The Pending status itself points to resource exhaustion rather than preemption state."
     },
     {
       "id": 112,
@@ -1829,13 +1829,13 @@
       "difficulty": "medium",
       "text": "You are building an archival solution and have selected Cloud Storage. Your users need to access this archived data once a quarter for regulatory requirements. You want a cost-efficient option. Which storage option should you use?",
       "options": {
-        "A": "Cold Storage",
+        "A": "Coldline Storage",
         "B": "Nearline Storage",
         "C": "Regional Storage",
         "D": "Multi-Regional Storage"
       },
-      "answer": "B",
-      "explanation": "Access once per quarter (4 times per year) maps to Nearline Storage, which is designed for data accessed less than once per month. Nearline has a 30-day minimum storage duration. Coldline (approximately option A) would be appropriate for less than once per quarter access. Regional (C) and Multi-Regional (D) are Standard class — too expensive for rarely accessed archive data."
+      "answer": "A",
+      "explanation": "Access once per quarter (4 times per year) matches Coldline Storage, which is designed for data accessed at most once a quarter. Coldline provides a lower storage cost than Nearline (B) but has a 90-day minimum storage duration. Nearline (B) is optimized for monthly access. Regional (C) and Multi-Regional (D) are Standard class, which are much more expensive for archiving purposes. Coldline is the most cost-effective choice here."
     },
     {
       "id": 122,
@@ -1849,8 +1849,8 @@
         "C": "Create a node pool with preemptible VMs and GPUs attached to those VMs",
         "D": "Create a node pool of instances with GPUs, and enable autoscaling on this node pool with a minimum size of 1"
       },
-      "answer": "D",
-      "explanation": "Creating a GPU node pool with autoscaling (min=0, max=N) ensures GPU nodes spin up when needed and scale back when idle, minimizing costs. The jobs are non-restartable, so preemptible VMs (C) are inappropriate — they can be terminated at any time, which would fail non-restartable jobs. Node auto-provisioning (A) automatically creates node pools but doesn't account for the non-restartable constraint."
+      "answer": "A",
+      "explanation": "Enable node auto-provisioning on the GKE cluster. Node auto-provisioning automatically creates node pools based on the CPU/Memory/GPU requests of pending Pods, and deletes them when they are no longer needed (scaling to zero). Since the workloads are infrequent, this minimizes cost. Since they are non-restartable, preemptible VMs (C) are not appropriate because they can be terminated at any time. A fixed node pool with min=1 (D) would keep an expensive GPU node running even when there are no jobs."
     },
     {
       "id": 123,
@@ -2044,8 +2044,8 @@
         "C": "Verify that the instance template being used contains valid syntax. Delete any persistent disks with the same name as instance names. Set disks.autoDelete property to true.",
         "D": "Delete the current instance template and replace it with a new instance template. Verify that the instance name and persistent disk name values are not the same in the template. Set disks.autoDelete property to true."
       },
-      "answer": "A",
-      "explanation": "The most common cause of MIG instance creation failure is template syntax errors or resource conflicts. Persistent disks with the same name as instances cause conflicts when the MIG tries to create replacement instances. Creating a valid template and removing conflicting disk names resolves the issue. The disks.autoDelete property (C, D) prevents this from recurring but isn't the immediate fix — getting a working template and clearing the conflict is."
+      "answer": "C",
+      "explanation": "Verify that the instance template being used by the instance group contains valid syntax. Delete any persistent disks with the same name as instance names. Set the disks.autoDelete property to true in the instance template. This prevents naming conflicts when the MIG tries to recreate replacement instances. When autoDelete is true, GCE will clean up the persistent disks automatically when the instances are deleted, preventing future conflicts. Option A lacks the autoDelete setting, leading to recurring issues."
     },
     {
       "id": 136,
@@ -2149,8 +2149,8 @@
         "C": "Migrate to use a Local SSD on the instance",
         "D": "Migrate to use a Regional SSD on the instance"
       },
-      "answer": "C",
-      "explanation": "Local SSDs are physically attached to the server hosting the VM, providing much higher IOPS and throughput than Persistent Disks (both Zonal and Regional). For large file sequential reads, Local SSD provides up to 2.4 TB/s read throughput vs. much lower limits on Persistent Disk. Local SSD is also cheaper per GB than Regional SSD (D). Increasing disk size (A) increases throughput limits but not as dramatically. CPU (B) is not the bottleneck here."
+      "answer": "A",
+      "explanation": "In Google Cloud, Zonal SSD Persistent Disk performance (IOPS and throughput) scales linearly with disk size. Increasing the size of the disk (e.g. to 1 TB) directly increases the provisioned IOPS and throughput limit. This resolves the throttling issue while keeping the storage persistent. Local SSD (C) offers high performance but is ephemeral, which is not suitable for persistent data. Increasing CPU (B) does not affect disk limits if they are throttled at the disk level. Regional SSD (D) is more expensive and unnecessary for zonal workloads."
     },
     {
       "id": 143,

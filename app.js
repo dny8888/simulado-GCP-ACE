@@ -247,19 +247,30 @@ function renderPage() {
     const ans = session.answers[q.id];
     const diffClass = q.difficulty === 'hard' ? 'hard' : q.difficulty === 'easy' ? 'easy' : 'med';
 
+    const correctArr = q.answer.split(',').map(s=>s.trim());
+    const isEvaluated = ans && (ans.evaluated || session.finished);
+
     const optsHTML = Object.entries(q.options).map(([letter, text]) => {
       let cls = 'opt';
+      
+      let isChosen = false;
       if (ans) {
-        if (session.mode === 'practice' || session.finished) {
-          cls += ' disabled';
-          if (letter === q.answer)          cls += ' correct';
-          else if (letter === ans.chosen)   cls += ' wrong';
+        if (Array.isArray(ans.chosen)) {
+          isChosen = ans.chosen.includes(letter);
         } else {
-          if (letter === ans.chosen)        cls += ' selected-opt';
+          isChosen = ans.chosen === letter; // backward compat
         }
       }
+
+      if (isEvaluated) {
+        cls += ' disabled';
+        if (correctArr.includes(letter))    cls += ' correct';
+        else if (isChosen)                  cls += ' wrong';
+      } else {
+        if (isChosen)                       cls += ' selected-opt';
+      }
       
-      const canClick = !session.finished && !(session.mode === 'practice' && ans);
+      const canClick = !session.finished && (!ans || !ans.evaluated);
       const click = canClick ? `onclick="answer(${q.id},'${letter}')" onkeydown="handleKey(event, ${q.id}, '${letter}')" tabindex="0" role="button"` : '';
       return `<div class="${cls}" ${click}>
         <span class="letter">${letter}</span>
@@ -268,20 +279,21 @@ function renderPage() {
     }).join('');
 
     let resultHTML = '';
-    if (ans && (session.mode === 'practice' || session.finished)) {
+    if (isEvaluated) {
       if (ans.correct) {
         resultHTML = `<div class="q-result ok">
           ${iconCheck()} Correct! Well done.
         </div>`;
       } else {
+        const correctText = correctArr.map(c => `<strong>${c}: ${escHtml(q.options[c])}</strong>`).join('<br>');
         resultHTML = `<div class="q-result bad">
-          ${iconX()} Incorrect — correct answer is <strong>&nbsp;${q.answer}: ${escHtml(q.options[q.answer])}</strong>
+          ${iconX()} Incorrect — correct answer(s):<br>${correctText}
         </div>`;
       }
     }
 
     let actionsHTML = '';
-    if ((session.mode === 'practice' && ans) || session.finished) {
+    if ((session.mode === 'practice' && isEvaluated) || session.finished) {
       actionsHTML = `
       <div class="q-actions">
         <button class="btn-sm ${errors[q.id] ? 'active' : ''}" onclick="toggleError(${q.id})">
@@ -348,14 +360,41 @@ function answer(qId, letter) {
   const q = session.questions.find(x=>x.id===qId);
   if (!q) return;
 
+  const correctAnswers = q.answer.split(',').map(s => s.trim());
+  const numCorrect = correctAnswers.length;
+
+  let currentAns = session.answers[qId] || { chosen: [] };
+  // backward compat
+  if (typeof currentAns.chosen === 'string') currentAns.chosen = [currentAns.chosen];
+
   if (session.mode === 'practice') {
-    if (session.answers[qId]) return; // already answered
-    const correct = letter === q.answer;
-    session.answers[qId] = { chosen: letter, correct };
-    if (!correct) logErrorObj(q, letter);
+    if (currentAns.evaluated) return; // already answered
+    
+    // Toggle
+    if (currentAns.chosen.includes(letter)) {
+      currentAns.chosen = currentAns.chosen.filter(x => x !== letter);
+    } else {
+      currentAns.chosen.push(letter);
+    }
+    
+    if (currentAns.chosen.length === numCorrect) {
+      currentAns.evaluated = true;
+      const isCorrect = currentAns.chosen.every(c => correctAnswers.includes(c)) && currentAns.chosen.length === numCorrect;
+      currentAns.correct = isCorrect;
+      session.answers[qId] = currentAns;
+      if (!isCorrect) logErrorObj(q, currentAns.chosen);
+    } else {
+      session.answers[qId] = currentAns;
+    }
   } else {
     // Exam mode
-    session.answers[qId] = { chosen: letter };
+    if (currentAns.chosen.includes(letter)) {
+      currentAns.chosen = currentAns.chosen.filter(x => x !== letter);
+    } else {
+      if (currentAns.chosen.length >= numCorrect) currentAns.chosen.shift();
+      currentAns.chosen.push(letter);
+    }
+    session.answers[qId] = currentAns;
   }
 
   save(STORE_SESSION, session);
@@ -363,16 +402,27 @@ function answer(qId, letter) {
   updateTitle();
 }
 
-function logErrorObj(q, chosen) {
+function logErrorObj(q, chosenArr) {
+  let chosenStr = 'N/A';
+  let chosenText = 'Nenhuma resposta';
+  if (chosenArr && chosenArr.length > 0) {
+    let arr = Array.isArray(chosenArr) ? chosenArr : [chosenArr];
+    chosenStr = arr.sort().join(', ');
+    chosenText = arr.map(c => q.options[c]).join(' | ');
+  }
+  
+  const correctArr = q.answer.split(',').map(s => s.trim());
+  const correctText = correctArr.map(c => q.options[c]).join(' | ');
+
   errors[q.id] = {
     id: q.id,
     question: q.text,
     domain: q.domain,
     options: q.options,
-    yourAnswer: chosen || 'N/A',
-    yourAnswerText: chosen ? q.options[chosen] : 'Nenhuma resposta',
+    yourAnswer: chosenStr,
+    yourAnswerText: chosenText,
     correct: q.answer,
-    correctText: q.options[q.answer],
+    correctText: correctText,
     explanation: q.explanation || '',
     loggedAt: new Date().toISOString()
   };
@@ -427,10 +477,16 @@ function finishExam(force = false) {
   
   if (session.mode === 'exam') {
     session.questions.forEach(q => {
-      const ans = session.answers[q.id] || { chosen: null };
-      ans.correct = (ans.chosen === q.answer);
+      const correctArr = q.answer.split(',').map(s => s.trim());
+      const ans = session.answers[q.id] || { chosen: [] };
+      if (typeof ans.chosen === 'string') ans.chosen = [ans.chosen];
+      
+      const isCorrect = ans.chosen.every(c => correctArr.includes(c)) && ans.chosen.length === correctArr.length;
+      ans.correct = isCorrect;
+      ans.evaluated = true;
       session.answers[q.id] = ans;
-      if (!ans.correct) logErrorObj(q, ans.chosen);
+      
+      if (!isCorrect) logErrorObj(q, ans.chosen);
     });
   }
   
