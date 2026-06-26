@@ -471,3 +471,36 @@ body.light-theme {
   align-items: center;
   gap: 8px;
 }
+
+/* Footer Styles */
+.footer {
+  margin-top: 40px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text3);
+  flex-wrap: wrap;
+}
+.footer-link {
+  color: var(--text2);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.footer-link:hover {
+  color: var(--blue);
+}
+.footer-divider {
+  color: var(--border);
+}
+.footer-commit {
+  font-family: var(--mono);
+  background: var(--bg3);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}

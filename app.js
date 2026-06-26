@@ -1188,9 +1188,86 @@ function drawThemeEvolutionGrid() {
 }
 
 /* ══════════════════════════════════════════════
+   GIT META
+══════════════════════════════════════════════ */
+const BUILT_COMMIT_SHA = '__COMMIT_SHA__';
+
+async function loadGitMeta() {
+  const el = document.getElementById('footer-commit-meta');
+  const link = document.getElementById('footer-repo-link');
+  if (!el) return;
+
+  const owner = "dny8888";
+  const repo = "simulado-GCP-ACE";
+
+  let finalOwner = owner;
+  let finalRepo = repo;
+  if (window.location.hostname.endsWith('github.io')) {
+    const user = window.location.hostname.split('.')[0];
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    if (user && pathParts.length > 0) {
+      finalOwner = user;
+      finalRepo = pathParts[0];
+    }
+  }
+
+  if (link) {
+    link.href = `https://github.com/${finalOwner}/${finalRepo}`;
+    link.textContent = `📦 ${finalOwner}/${finalRepo}`;
+  }
+
+  // Se o SHA foi injetado no build (GitHub Actions), usamos diretamente!
+  // Isso garante 100% de precisão sobre a versão do PWA que está rodando localmente.
+  if (BUILT_COMMIT_SHA !== '__COMMIT_SHA__') {
+    const shortSha = BUILT_COMMIT_SHA.slice(0, 7);
+    const url = `https://github.com/${finalOwner}/${finalRepo}/commit/${BUILT_COMMIT_SHA}`;
+    renderGitMeta(shortSha, url);
+    return;
+  }
+
+  const cacheKey = 'gcp-ace-git-meta';
+  const cached = load(cacheKey, null);
+  const now = Date.now();
+
+  if (cached && (now - cached.timestamp < 3600000)) {
+    renderGitMeta(cached.sha, cached.url);
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${finalOwner}/${finalRepo}/commits`);
+    if (!res.ok) throw new Error('API error');
+    const commits = await res.json();
+    if (commits && commits.length > 0) {
+      const sha = commits[0].sha.slice(0, 7);
+      const url = commits[0].html_url;
+      const meta = { sha, url, timestamp: now };
+      save(cacheKey, meta);
+      renderGitMeta(sha, url);
+    } else {
+      throw new Error('No commits found');
+    }
+  } catch (err) {
+    if (cached) {
+      renderGitMeta(cached.sha, cached.url);
+    } else {
+      el.innerHTML = `<span style="color:var(--text3)">offline / local</span>`;
+    }
+  }
+}
+
+function renderGitMeta(sha, url) {
+  const el = document.getElementById('footer-commit-meta');
+  if (el) {
+    el.innerHTML = `<a href="${url}" target="_blank" class="footer-link" style="font-family:inherit;font-weight:inherit;">SHA: ${sha}</a>`;
+  }
+}
+
+/* ══════════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════════ */
 loadQuestions();
+loadGitMeta();
 
 function toggleTheme() {
   const isLight = document.body.classList.toggle('light-theme');
