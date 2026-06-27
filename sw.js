@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ace-sim-v2';
+const CACHE_NAME = 'ace-sim-v5';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './questions.json',
+  './mindmap.json',
   './manifest.json'
 ];
 

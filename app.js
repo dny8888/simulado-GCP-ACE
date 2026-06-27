@@ -89,7 +89,7 @@ function discardSession() {
   session = null;
   save(STORE_SESSION, null);
   checkActiveSession();
-  toast('Sessão descartada.');
+  toast('Session discarded.');
 }
 
 function selectSize(n) {
@@ -218,7 +218,7 @@ function renderExam() {
   const pct    = Math.round(answered/total*100);
 
   document.getElementById('exam-title').textContent =
-    `Simulado · ${answered} / ${total} answered`;
+    `Exam · ${answered} / ${total} answered`;
   document.getElementById('exam-prog').style.width = pct + '%';
 
   // Finish banner
@@ -361,7 +361,7 @@ function updateTitle() {
   if (!session) return;
   const answered = Object.keys(session.answers).length;
   document.getElementById('exam-title').textContent =
-    `Simulado · ${answered} / ${session.questions.length} answered`;
+    `Exam · ${answered} / ${session.questions.length} answered`;
   const pct = Math.round(answered/session.questions.length*100);
   document.getElementById('exam-prog').style.width = pct + '%';
 }
@@ -485,7 +485,7 @@ function finishExam(force = false) {
   if (!session) return;
   const unanswered = session.questions.filter(q=>!session.answers[q.id]).length;
   if (unanswered > 0 && !force) {
-    if (!confirm(`Você tem ${unanswered} questão(ões) sem resposta. Enviar mesmo assim?`)) return;
+    if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) return;
   }
   session.finished = true;
   
@@ -661,7 +661,7 @@ function copyGroupErrorsForAI(sessionId) {
   const list = getGroupErrors(sessionId);
   if (!list.length) return;
   const text = buildAIPrompt(list);
-  navigator.clipboard.writeText(text).then(() => toast(`Copiado ${list.length} erro(s) para o clipboard!`));
+  navigator.clipboard.writeText(text).then(() => toast(`Copied ${list.length} error(s) to clipboard!`));
 }
 
 function renderErrorCard(e, sessionId) {
@@ -715,14 +715,14 @@ function renderErrors() {
   if (totalErrorsCount === 0) {
     el.innerHTML = `<div class="empty-state">
       <div class="icon">✓</div>
-      <p>Nenhum erro registrado.<br>Erros em simulados ou no Modo Estudo aparecerão aqui automaticamente.</p>
+      <p>No errors logged.<br>Errors from exams or Study Mode will appear here automatically.</p>
     </div>`;
     return;
   }
 
   let html = `
     <button class="btn-sm blue" style="margin-bottom:16px; width:100%; justify-content: center;" onclick="copyAllForAI()">
-      📋 Copiar todos os ${totalErrorsCount} erro(s) para análise na IA
+      📋 Copy all ${totalErrorsCount} error(s) for AI analysis
     </button>
   `;
 
@@ -734,11 +734,11 @@ function renderErrors() {
       <div class="error-group ${isOpen ? 'open' : ''}" id="${groupId}">
         <div class="error-group-header" onclick="toggleErrorGroup('${groupId}')">
           <div class="error-group-title">
-            <span>📁 Modo Estudo (Erros Avulsos)</span>
+            <span>📁 Study Mode (Individual Errors)</span>
             <span class="badge" style="background:var(--red-dim);color:var(--red);padding:2px 6px;border-radius:10px;font-size:11px;">${studyErrorsList.length}</span>
           </div>
           <div class="error-group-header-actions" onclick="event.stopPropagation()">
-            <button class="btn-sm blue" onclick="copyGroupErrorsForAI('study')">📋 Copiar Grupo</button>
+            <button class="btn-sm blue" onclick="copyGroupErrorsForAI('study')">📋 Copy Group</button>
           </div>
         </div>
         <div class="error-group-content">
@@ -751,17 +751,17 @@ function renderErrors() {
   simGroups.forEach(g => {
     const groupId = `error-group-${g.id}`;
     const isOpen = !!openErrorGroups[groupId]; // closed by default
-    const modeLabel = g.mode === 'exam' ? 'Prova' : 'Estudo';
+    const modeLabel = g.mode === 'exam' ? 'Exam' : 'Study';
 
     html += `
       <div class="error-group ${isOpen ? 'open' : ''}" id="${groupId}">
         <div class="error-group-header" onclick="toggleErrorGroup('${groupId}')">
           <div class="error-group-title">
-            <span>📝 Simulado (${g.date}) - ${g.pct}% (${g.correct}/${g.total}) [${modeLabel}]</span>
+            <span>📝 Exam (${g.date}) - ${g.pct}% (${g.correct}/${g.total}) [${modeLabel}]</span>
             <span class="badge" style="background:var(--red-dim);color:var(--red);padding:2px 6px;border-radius:10px;font-size:11px;">${g.errors.length}</span>
           </div>
           <div class="error-group-header-actions" onclick="event.stopPropagation()">
-            <button class="btn-sm blue" onclick="copyGroupErrorsForAI('${g.id}')">📋 Copiar Grupo</button>
+            <button class="btn-sm blue" onclick="copyGroupErrorsForAI('${g.id}')">📋 Copy Group</button>
           </div>
         </div>
         <div class="error-group-content">
@@ -797,7 +797,7 @@ function removeError(id, sessionId) {
 }
 
 function clearErrors() {
-  if (!confirm('Deseja limpar todos os logs de erro (incluindo erros de simulados finalizados)?')) return;
+  if (!confirm('Do you want to clear all error logs (including errors from finished exams)?')) return;
   
   errors = {};
   save(STORE_ERRORS, errors);
@@ -813,7 +813,7 @@ function clearErrors() {
   renderErrorBadge();
   renderErrors();
   renderHomeStats();
-  toast('Log de erros limpo');
+  toast('Error log cleared');
 }
 
 function copyAllForAI() {
@@ -826,11 +826,11 @@ function copyAllForAI() {
   });
 
   if (!allList.length) {
-    toast('Nenhum erro registrado.');
+    toast('No errors logged.');
     return;
   }
   const text = buildAIPrompt(allList);
-  navigator.clipboard.writeText(text).then(() => toast(`Copiado total de ${allList.length} erro(s) para o clipboard!`));
+  navigator.clipboard.writeText(text).then(() => toast(`Copied a total of ${allList.length} error(s) to clipboard!`));
 }
 
 function copySingleForAI(id, sessionId) {
@@ -843,7 +843,7 @@ function copySingleForAI(id, sessionId) {
   }
   if (!e) return;
   const text = buildAIPrompt([e]);
-  navigator.clipboard.writeText(text).then(() => toast('Copiado para o clipboard!'));
+  navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!'));
 }
 
 function buildAIPrompt(list) {
@@ -916,7 +916,7 @@ function renderHistory() {
     statsCard.style.display = 'none';
     el.innerHTML = `<div class="empty-state">
       <div class="icon">📋</div>
-      <p>Nenhum simulado finalizado ainda.</p>
+      <p>No exams finished yet.</p>
     </div>`;
     return;
   }
@@ -927,7 +927,7 @@ function renderHistory() {
   
   el.innerHTML = history.map(h => {
     const isExpanded = openHistoryDetails[h.id] ? 'block' : 'none';
-    const modeLabel = h.mode === 'exam' ? 'Prova' : 'Estudo';
+    const modeLabel = h.mode === 'exam' ? 'Exam' : 'Study';
     
     // Build theme layout
     let themesHTML = '';
@@ -947,18 +947,18 @@ function renderHistory() {
         <span class="hist-date">${h.date}</span>
         <span class="hist-score ${h.pct>=70?'pass':'fail'}">${h.pct}%</span>
         <span class="hist-detail">
-          <span>${h.correct}/${h.total} acertos</span>
-          <span>${h.size} questões (${modeLabel})</span>
+          <span>${h.correct}/${h.total} correct</span>
+          <span>${h.size} questions (${modeLabel})</span>
           <span style="color:${h.pct>=70?'var(--green)':'var(--red)'}">${h.pct>=70?'PASS':'FAIL'}</span>
         </span>
       </div>
       <div class="hist-card-details" id="hist-details-${h.id}" style="display:${isExpanded};" onclick="event.stopPropagation()">
         <div class="hist-theme-list">
-          <h4>Desempenho por Tema:</h4>
-          ${themesHTML || '<p style="font-size:11px;color:var(--text3)">Estatísticas por tema indisponíveis para este simulado antigo.</p>'}
+          <h4>Performance by Category:</h4>
+          ${themesHTML || '<p style="font-size:11px;color:var(--text3)">Category statistics unavailable for this old exam.</p>'}
         </div>
         <button class="btn-sm blue" style="margin-top:12px; width:100%; justify-content: center;" onclick="goScreen('errors'); filterErrorsBySession('${h.id}');">
-          Ver erros desta iteração →
+          Review errors of this iteration →
         </button>
       </div>
     </div>`;
@@ -978,7 +978,7 @@ function clearHistory() {
    SCREENS
 ══════════════════════════════════════════════ */
 function goScreen(name) {
-  ['home','exam','errors','history'].forEach(s => {
+  ['home','exam','errors','history','mindmap'].forEach(s => {
     document.getElementById(`screen-${s}`).style.display = 'none';
     document.getElementById(`nav-${s}`).classList.remove('active');
   });
@@ -989,6 +989,7 @@ function goScreen(name) {
   if (name === 'history') renderHistory();
   if (name === 'home')    { renderHomeStats(); renderDistGrid(selectedSize); checkActiveSession(); }
   if (name === 'exam' && session) renderExam();
+  if (name === 'mindmap') renderMindMap();
 }
 
 /* ══════════════════════════════════════════════
@@ -1145,11 +1146,11 @@ function drawThemeEvolutionGrid() {
   });
 
   const translationMap = {
-    'Setting up a cloud solution environment': '1. Configurando o Ambiente de Nuvem',
-    'Planning and configuring a cloud solution': '2. Planejando e Configurando Soluções',
-    'Deploying and implementing a cloud solution': '3. Implantando e Implementando Soluções',
-    'Ensuring successful operation of a cloud solution': '4. Garantindo a Operação Bem-sucedida',
-    'Configuring access and security': '5. Configurando Acesso e Segurança'
+    'Setting up a cloud solution environment': '1. Setting up a Cloud Environment',
+    'Planning and configuring a cloud solution': '2. Planning and Configuring Solutions',
+    'Deploying and implementing a cloud solution': '3. Deploying and Implementing Solutions',
+    'Ensuring successful operation of a cloud solution': '4. Ensuring Successful Operation',
+    'Configuring access and security': '5. Configuring Access and Security'
   };
 
   let html = '';
@@ -1167,8 +1168,8 @@ function drawThemeEvolutionGrid() {
 
     const title = translationMap[section] || section;
     const subText = hasData 
-      ? `${stats.correct} de ${stats.total} acertos` 
-      : 'Nenhuma questão respondida';
+      ? `${stats.correct} of ${stats.total} correct` 
+      : 'No questions answered';
 
     html += `
       <div class="theme-progress-card">
@@ -1185,6 +1186,172 @@ function drawThemeEvolutionGrid() {
   });
 
   container.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════
+   MIND MAP
+══════════════════════════════════════════════ */
+let mindMapData = null;
+let mmActiveCategory = 'all';
+let mmExpandedCard = null;
+
+async function loadMindMapData() {
+  if (mindMapData) return;
+  try {
+    const res = await fetch('mindmap.json');
+    mindMapData = await res.json();
+  } catch (e) {
+    console.error('Failed to load mindmap.json', e);
+  }
+}
+
+async function renderMindMap() {
+  await loadMindMapData();
+  if (!mindMapData) {
+    document.getElementById('mm-content').innerHTML = '<p style="color:var(--red); padding: 10px 0;">Error loading mind map data.</p>';
+    return;
+  }
+
+  renderMMNav();
+  renderMMContent(document.getElementById('mm-search').value);
+}
+
+function renderMMNav() {
+  const nav = document.getElementById('mm-nav');
+  if (!nav) return;
+
+  const allBtn = `<button class="nav-btn ${mmActiveCategory === 'all' ? 'active' : ''}" onclick="setMMCategory('all')">All</button>`;
+  const catBtns = mindMapData.map(c =>
+    `<button class="nav-btn ${mmActiveCategory === c.id ? 'active' : ''}" onclick="setMMCategory('${c.id}')">${c.icon} ${c.label}</button>`
+  ).join('');
+
+  nav.innerHTML = allBtn + catBtns;
+}
+
+function setMMCategory(id) {
+  mmActiveCategory = id;
+  mmExpandedCard = null;
+  renderMMNav();
+  renderMMContent(document.getElementById('mm-search').value);
+}
+
+function filterMindMap(query) {
+  renderMMContent(query);
+}
+
+function renderMMContent(query = "") {
+  const content = document.getElementById('mm-content');
+  if (!content) return;
+
+  const q = query.toLowerCase().trim();
+  const catsToShow = mmActiveCategory === 'all' ? mindMapData : mindMapData.filter(c => c.id === mmActiveCategory);
+
+  let html = '';
+  let totalVisible = 0;
+
+  catsToShow.forEach(cat => {
+    const products = cat.products.filter(p =>
+      !q || 
+      p.name.toLowerCase().includes(q) || 
+      p.subtitle.toLowerCase().includes(q) || 
+      p.usecases.some(u => u.toLowerCase().includes(q)) || 
+      p.when.toLowerCase().includes(q) ||
+      (p.tag && p.tag.toLowerCase().includes(q))
+    );
+
+    if (products.length === 0) return;
+    totalVisible += products.length;
+
+    html += `
+      <div style="margin-bottom: 24px;">
+        <h3 class="stats-section-title" style="font-size: 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; text-transform: uppercase;">
+          <span>${cat.icon}</span>
+          <span>${cat.label}</span>
+        </h3>
+        <p style="font-size: 11px; color: var(--text3); margin-bottom: 12px;">${cat.desc}</p>
+        <div class="mm-cards-grid">
+          ${products.map(p => renderMMCard(p, cat.color)).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  if (q) {
+    html = `<div style="font-size: 12px; color: var(--text2); margin-bottom: 12px;">
+      ${totalVisible} product${totalVisible !== 1 ? 's' : ''} found
+    </div>` + html;
+  }
+
+  if (!html) {
+    html = `<div style="color:var(--text3); font-size:13px; padding:20px 0;">
+      No product found for "${escHtml(query)}".
+    </div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function renderMMCard(p, colorClass) {
+  const id = p.name.replace(/\s+/g, '-').toLowerCase();
+  const isExpanded = mmExpandedCard === id;
+  
+  let tagColorStyle = '';
+  if (colorClass === 'color-compute') tagColorStyle = 'background: rgba(88, 166, 255, 0.15); color: var(--blue); border: 1px solid rgba(88, 166, 255, 0.3);';
+  else if (colorClass === 'color-storage') tagColorStyle = 'background: rgba(63, 185, 80, 0.15); color: var(--green); border: 1px solid rgba(63, 185, 80, 0.3);';
+  else if (colorClass === 'color-network') tagColorStyle = 'background: rgba(242, 199, 68, 0.15); color: var(--yellow); border: 1px solid rgba(242, 199, 68, 0.3);';
+  else if (colorClass === 'color-data') tagColorStyle = 'background: rgba(187, 134, 252, 0.15); color: #bb86fc; border: 1px solid rgba(187, 134, 252, 0.3);';
+  else if (colorClass === 'color-devops') tagColorStyle = 'background: rgba(3, 218, 198, 0.15); color: #03dac6; border: 1px solid rgba(3, 218, 198, 0.3);';
+  else if (colorClass === 'color-security') tagColorStyle = 'background: rgba(248, 81, 73, 0.15); color: var(--red); border: 1px solid rgba(248, 81, 73, 0.3);';
+  else if (colorClass === 'color-ai') tagColorStyle = 'background: rgba(255, 121, 198, 0.15); color: #ff79c6; border: 1px solid rgba(255, 121, 198, 0.3);';
+
+  return `
+    <div class="mm-card ${isExpanded ? 'expanded' : ''}" id="mm-card-${id}" onclick="toggleMMCard('${id}')">
+      <div class="mm-card-header">
+        <div style="flex: 1; min-width: 0;">
+          <div class="mm-card-name">${escHtml(p.name)}</div>
+          <div class="mm-card-subtitle">${escHtml(p.subtitle)}</div>
+        </div>
+        <span class="mm-card-tag" style="${tagColorStyle}">${escHtml(p.tag)}</span>
+      </div>
+      
+      <div class="mm-card-body ${isExpanded ? 'show' : ''}" id="mm-body-${id}">
+        <div class="mm-card-section">
+          <div class="mm-card-section-label">When to use</div>
+          <p>${escHtml(p.when)}</p>
+        </div>
+        
+        <div class="mm-card-section">
+          <div class="mm-card-section-label">Key differences</div>
+          <ul class="mm-diff-list">
+            ${p.diffs.map(d => `<li>${escHtml(d)}</li>`).join('')}
+          </ul>
+        </div>
+        
+        <div class="mm-card-section">
+          <div class="mm-card-section-label">Use cases</div>
+          <div class="mm-use-tags">
+            ${p.usecases.map(u => `<span class="mm-use-tag">${escHtml(u)}</span>`).join('')}
+          </div>
+        </div>
+        
+        <div class="mm-exam-tip">
+          <strong style="font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--yellow);">💡 ACE Tip</strong><br>
+          ${escHtml(p.aceTip)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleMMCard(id) {
+  mmExpandedCard = mmExpandedCard === id ? null : id;
+  renderMMContent(document.getElementById('mm-search').value);
+  if (mmExpandedCard) {
+    setTimeout(() => {
+      const el = document.getElementById(`mm-card-${mmExpandedCard}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  }
 }
 
 /* ══════════════════════════════════════════════

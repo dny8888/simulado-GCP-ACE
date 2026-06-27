@@ -1,0 +1,771 @@
+[
+  {
+    "id": "compute",
+    "label": "Compute",
+    "icon": "⚙️",
+    "color": "color-compute",
+    "desc": "Compute services: VMs, containers, serverless",
+    "products": [
+      {
+        "name": "Compute Engine (GCE)",
+        "subtitle": "IaaS VMs — full control",
+        "tag": "IaaS",
+        "when": "Full OS control, legacy workloads, GPU/TPU, custom VMs",
+        "diffs": [
+          "You manage the OS, patches, and runtime",
+          "GPU/TPU support for ML",
+          "Preemptible VMs for fault-tolerant workloads (up to 80% off)",
+          "Automatic sustained use discounts",
+          "Custom machine types (independent vCPU + RAM)"
+        ],
+        "usecases": [
+          "Legacy VMs",
+          "HPC",
+          "ML with GPU",
+          "Self-managed databases"
+        ],
+        "aceTip": "Know when to use it vs App Engine. GCE = maximum control. Preemptible VMs = up to 91% discount on Spot VMs."
+      },
+      {
+        "name": "App Engine (GAE)",
+        "subtitle": "PaaS — deploy apps without managing infrastructure",
+        "tag": "PaaS",
+        "when": "Web/API apps that scale automatically without wanting to manage servers",
+        "diffs": [
+          "Standard: scales to zero, support for specific runtimes (Python, Java, Go, PHP, Ruby, Node.js)",
+          "Flexible: Docker containers, more runtimes, does not scale to zero",
+          "Standard scales faster, Flexible supports any language",
+          "Native traffic splitting between versions"
+        ],
+        "usecases": [
+          "Web apps",
+          "REST APIs",
+          "Mobile backends",
+          "Startup apps"
+        ],
+        "aceTip": "Standard vs Flexible is a classic exam question. Standard = scales to zero, faster instances, fixed runtime. Flexible = Docker, more expensive, does not scale to zero."
+      },
+      {
+        "name": "Google Kubernetes Engine (GKE)",
+        "subtitle": "Managed Kubernetes",
+        "tag": "CaaS",
+        "when": "Containerized workloads that need orchestration, microservices",
+        "diffs": [
+          "Autopilot: GKE without managing nodes (pay per pod)",
+          "Standard: you manage node pools",
+          "Native integration with Artifact Registry, Cloud Build, and Cloud IAM",
+          "Cluster Autoscaler and Horizontal Pod Autoscaler",
+          "Multi-zone and regional clusters for HA"
+        ],
+        "usecases": [
+          "Microservices",
+          "CI/CD",
+          "High availability apps"
+        ],
+        "aceTip": "Autopilot vs Standard: Autopilot = less control, less ops. Know how to configure node pools, autoscaling, and namespaces."
+      },
+      {
+        "name": "Cloud Run",
+        "subtitle": "Serverless containers",
+        "tag": "Serverless",
+        "when": "Stateless containers that scale to zero, without managing infrastructure",
+        "diffs": [
+          "Based on Knative, scales to zero automatically",
+          "Pay per request (100ms granularity)",
+          "Cloud Run Jobs for batch workloads",
+          "Supports any container that runs on port 8080",
+          "Simpler than GKE, more flexible than Cloud Functions"
+        ],
+        "usecases": [
+          "Serverless APIs",
+          "Webhooks",
+          "Batch processing",
+          "Stateless microservices"
+        ],
+        "aceTip": "Choosing between Cloud Run vs Cloud Functions: Run = container in any language, more control. Functions = small event, code without a container."
+      },
+      {
+        "name": "Cloud Functions",
+        "subtitle": "FaaS — event-driven functions",
+        "tag": "FaaS",
+        "when": "Small code that reacts to events (Pub/Sub, HTTP, Storage, Firestore)",
+        "diffs": [
+          "Gen 1 vs Gen 2 (Gen 2 = backed by Cloud Run, more features, concurrency per instance)",
+          "Triggers: HTTP, Pub/Sub, Cloud Storage, Firestore, Firebase",
+          "Cold start can be an issue (use min-instances to mitigate)",
+          "Limit of 9 min (Gen 1) / 60 min (Gen 2)"
+        ],
+        "usecases": [
+          "Process file uploads",
+          "Push notifications",
+          "Webhook integrations",
+          "Lightweight ETL"
+        ],
+        "aceTip": "Cold starts are covered in the exam. Min-instances = avoids cold start (at a cost). Gen 2 is preferred for new functions."
+      }
+    ]
+  },
+  {
+    "id": "storage",
+    "label": "Storage",
+    "icon": "💾",
+    "color": "color-storage",
+    "desc": "Object, block, file, and database storage",
+    "products": [
+      {
+        "name": "Cloud Storage (GCS)",
+        "subtitle": "Durable and global object storage",
+        "tag": "Object",
+        "when": "Store blobs, backups, static assets, ML data",
+        "diffs": [
+          "Standard: frequently accessed data",
+          "Nearline: accessed less than once a month (30 days min retention)",
+          "Coldline: accessed less than once a quarter (90 days min retention)",
+          "Archive: accessed less than once a year (365 days min retention, more expensive retrieval)",
+          "Lifecycle policies to move between classes automatically",
+          "Durability of 99.999999999% (11 nines)"
+        ],
+        "usecases": [
+          "Backup and DR",
+          "Data lake",
+          "Serve static content",
+          "ML input/output"
+        ],
+        "aceTip": "Questions about storage classes are frequent. Remember the minimum retention (30/90/365 days) and the increasing retrieval cost."
+      },
+      {
+        "name": "Persistent Disk (PD)",
+        "subtitle": "Block storage for VMs",
+        "tag": "Block",
+        "when": "VM boot disks, databases, persistent storage for GKE",
+        "diffs": [
+          "Standard HDD, Balanced (SSD), SSD, Extreme SSD",
+          "Regional PD: replicated across 2 zones for HA",
+          "Can be resized without downtime",
+          "Automatic incremental snapshots",
+          "Cross-region snapshot for DR"
+        ],
+        "usecases": [
+          "VM boot disks",
+          "Self-managed databases",
+          "GKE volumes"
+        ],
+        "aceTip": "Regional PD = HA. Snapshots are incremental (delta only). Extreme PD = high IOPS for critical databases."
+      },
+      {
+        "name": "Filestore",
+        "subtitle": "Managed NFS file storage",
+        "tag": "File",
+        "when": "Apps that need a shared file system (NFS)",
+        "diffs": [
+          "NFSv3 compatible",
+          "Basic HDD/SSD and Enterprise",
+          "Enterprise = HA with 99.99% SLA, regional support",
+          "Use with GKE via ReadWriteMany volumes"
+        ],
+        "usecases": [
+          "Content management systems",
+          "Home directories",
+          "GKE shared volumes",
+          "Legacy apps with NFS"
+        ],
+        "aceTip": "Filestore = NFS. Use when multiple VMs need to read/write to the same file system."
+      },
+      {
+        "name": "Cloud SQL",
+        "subtitle": "Managed MySQL, PostgreSQL, and SQL Server",
+        "tag": "Relational",
+        "when": "Relational databases without wanting to manage infrastructure, traditional web/mobile apps",
+        "diffs": [
+          "Supports MySQL 5.7/8.0, PostgreSQL 9.6-15, SQL Server",
+          "HA with automatic failover (primary + standby in the same region)",
+          "Cross-region read replicas are possible",
+          "Automatic backups and PITR (Point-in-Time Recovery)",
+          "Limit of ~100 TB"
+        ],
+        "usecases": [
+          "WordPress/Django web apps",
+          "ERP",
+          "CRM",
+          "Any app with a relational database"
+        ],
+        "aceTip": "Cloud SQL HA = 2 instances in the same region (primary + standby). Cross-region read replicas = disaster recovery."
+      },
+      {
+        "name": "Cloud Spanner",
+        "subtitle": "Globally distributed SQL, horizontal scale",
+        "tag": "Relational",
+        "when": "Global apps that need strong consistency AND horizontal scaling",
+        "diffs": [
+          "Only SQL database that scales horizontally (unlike Cloud SQL)",
+          "Strong external consistency (TrueTime)",
+          "Multi-regional = 99.999% SLA",
+          "Much more expensive than Cloud SQL",
+          "No practical limit on scale"
+        ],
+        "usecases": [
+          "Global fintech",
+          "Real-time inventory",
+          "Global gaming backend"
+        ],
+        "aceTip": "Spanner = when you need SQL + global horizontal scale + strong consistency. If the exam mentions 'scaling globally with ACID', the answer is Spanner."
+      },
+      {
+        "name": "Cloud Bigtable",
+        "subtitle": "NoSQL wide-column for high throughput",
+        "tag": "NoSQL",
+        "when": "Time series, IoT data, ML feature store — billions of rows, low latency",
+        "diffs": [
+          "Wide-column store (similar to HBase/Cassandra)",
+          "Latency < 10ms for reads/writes",
+          "No SQL, no joins, schema-free",
+          "Scales to PBs of data",
+          "Ideal for time-series and IoT data"
+        ],
+        "usecases": [
+          "IoT telemetry",
+          "Sensor data",
+          "High-frequency financial data",
+          "AdTech"
+        ],
+        "aceTip": "Bigtable ≠ BigQuery. Bigtable = operational, low latency, NoSQL. BigQuery = analytical, OLAP, SQL."
+      },
+      {
+        "name": "Firestore",
+        "subtitle": "NoSQL document store for mobile/web",
+        "tag": "NoSQL",
+        "when": "Mobile/web apps with real-time sync, hierarchical data",
+        "diffs": [
+          "Successor to Datastore (Firestore in Datastore mode = compatible with Datastore)",
+          "Native mode: best for mobile, real-time listeners",
+          "ACID transactions with optimistic locking",
+          "Serverless, scales automatically",
+          "Native offline sync (mobile SDK)"
+        ],
+        "usecases": [
+          "Mobile apps",
+          "Games",
+          "E-commerce",
+          "Real-time chat"
+        ],
+        "aceTip": "Firestore Native vs Datastore mode are exam questions. Native = real-time, mobile. Datastore mode = compatibility with legacy apps."
+      },
+      {
+        "name": "Cloud Memorystore",
+        "subtitle": "Managed Redis and Memcached",
+        "tag": "Cache",
+        "when": "Session caching, lightweight message queues, real-time leaderboards",
+        "diffs": [
+          "Redis: supports persistence, pub/sub, structured data",
+          "Memcached: simpler, only key-value caching",
+          "Fully managed (no OS ops)",
+          "High availability with Redis replication"
+        ],
+        "usecases": [
+          "Session cache",
+          "Rate limiting",
+          "Leaderboards",
+          "DB query caching"
+        ],
+        "aceTip": "Redis vs Memcached: Redis = persistence, complex structures. Memcached = pure cache, horizontal."
+      }
+    ]
+  },
+  {
+    "id": "network",
+    "label": "Networking",
+    "icon": "🌐",
+    "color": "color-network",
+    "desc": "VPC, load balancers, CDN, DNS, and connectivity",
+    "products": [
+      {
+        "name": "VPC (Virtual Private Cloud)",
+        "subtitle": "Global virtual private network",
+        "tag": "Foundation",
+        "when": "Always — all GCP infrastructure runs inside a VPC",
+        "diffs": [
+          "VPC in GCP is global (spans all regions, unlike AWS which is regional)",
+          "Subnets are regional within the global VPC",
+          "VPC Peering to connect VPCs without overlapping CIDRs",
+          "Shared VPC to share a VPC across projects",
+          "Firewall rules at the instance level (via service accounts or tags)"
+        ],
+        "usecases": [
+          "All GCP architectures",
+          "Workload isolation",
+          "Private communication between services"
+        ],
+        "aceTip": "Global VPC is a key difference vs AWS. Shared VPC = org that centralizes network. VPC Peering = no overlapping IPs."
+      },
+      {
+        "name": "Cloud Load Balancing",
+        "subtitle": "Managed load balancers (L4 and L7)",
+        "tag": "LB",
+        "when": "Distribute traffic across instances with HA and scalability",
+        "diffs": [
+          "Global External HTTP(S) LB: L7, anycast, SSL, integrated Cloud CDN",
+          "Regional External HTTP(S) LB: L7, per region",
+          "TCP/UDP Network LB: L4, regional, preserves client IP",
+          "Internal LB: private traffic between VMs",
+          "Backend services can have health checks, session affinity"
+        ],
+        "usecases": [
+          "Global web apps",
+          "APIs with SSL termination",
+          "Internal apps between microservices"
+        ],
+        "aceTip": "Knowing which LB to use is a frequent topic: Global HTTPS = global web. Network LB = L4, low latency. Internal = private traffic."
+      },
+      {
+        "name": "Cloud CDN",
+        "subtitle": "Global CDN with content caching",
+        "tag": "CDN",
+        "when": "Accelerate delivery of static or dynamic content to global users",
+        "diffs": [
+          "Integrated with the Global HTTP(S) LB",
+          "Cached at Google's POPs (Points of Presence)",
+          "Granular cache invalidation by URL",
+          "Signed URLs and Signed Cookies for private content"
+        ],
+        "usecases": [
+          "Sites with static assets",
+          "Video streaming",
+          "App downloads"
+        ],
+        "aceTip": "CDN = check a box on the Load Balancer. Signed URLs = time-limited access to private objects."
+      },
+      {
+        "name": "Cloud DNS",
+        "subtitle": "Low-latency managed DNS",
+        "tag": "DNS",
+        "when": "Host DNS zones, internal and public name resolution",
+        "diffs": [
+          "Public and private zones",
+          "Private zones work only within the VPC",
+          "DNS peering to resolve names from other VPCs",
+          "DNSSEC supported for public zones",
+          "100% availability SLA"
+        ],
+        "usecases": [
+          "Public domains",
+          "Internal resolution for microservices",
+          "Split-horizon zones"
+        ],
+        "aceTip": "Private zones = DNS resolution only within the VPC. Useful for internal service discovery."
+      },
+      {
+        "name": "Cloud Interconnect & VPN",
+        "subtitle": "On-premises connectivity",
+        "tag": "Hybrid",
+        "when": "Connect on-prem data center to GCP securely with low latency",
+        "diffs": [
+          "Cloud VPN: IPsec, up to 3 Gbps per tunnel, public internet, lower cost",
+          "Dedicated Interconnect: direct physical connection (10 or 100 Gbps), lower latency",
+          "Partner Interconnect: via partner provider, more flexible than Dedicated",
+          "Cloud Router with BGP for dynamic routing",
+          "HA VPN: 99.99% SLA with 2 gateways + 4 tunnels"
+        ],
+        "usecases": [
+          "Lift-and-shift migration",
+          "Hybrid workloads",
+          "DR with failover to cloud"
+        ],
+        "aceTip": "VPN = public internet, cheap, variable latency. Interconnect = physical cable, expensive, predictable latency, high throughput."
+      },
+      {
+        "name": "Cloud NAT",
+        "subtitle": "Managed Network Address Translation",
+        "tag": "NAT",
+        "when": "VMs without public IPs need to access the internet (downloads, updates)",
+        "diffs": [
+          "Does not require gateway VMs, fully managed",
+          "Scales automatically",
+          "Works with specific subnets",
+          "Does not support inbound connections (outbound only)"
+        ],
+        "usecases": [
+          "Private VMs that need internet access",
+          "GKE instances without public IPs"
+        ],
+        "aceTip": "Cloud NAT = egress to the internet without public IP. Not bidirectional — outbound only."
+      }
+    ]
+  },
+  {
+    "id": "data",
+    "label": "Big Data",
+    "icon": "📊",
+    "color": "color-data",
+    "desc": "Analytics, streaming, data warehouse, and pipelines",
+    "products": [
+      {
+        "name": "BigQuery",
+        "subtitle": "Serverless and analytical data warehouse",
+        "tag": "OLAP",
+        "when": "Analysis of large data volumes, SQL analytics, integrated ML",
+        "diffs": [
+          "Serverless: no clusters to manage",
+          "Separation of compute/storage (pay per query or per slot)",
+          "On-demand: $5/TB processed. Capacity: slot reservation",
+          "BigQuery ML: train ML models via SQL",
+          "Streaming ingestion for near-real-time data",
+          "Partitioned and clustered tables to reduce query costs"
+        ],
+        "usecases": [
+          "Enterprise data warehouse",
+          "Marketing analytics",
+          "Business intelligence reporting"
+        ],
+        "aceTip": "BigQuery ≠ Bigtable. BQ = OLAP, analytical, batch. Partitioning and clustering reduce cost — a frequent question."
+      },
+      {
+        "name": "Pub/Sub",
+        "subtitle": "Global asynchronous messaging",
+        "tag": "Messaging",
+        "when": "Decouple producers from consumers, event streaming",
+        "diffs": [
+          "Push (GCP delivers to endpoint) vs Pull (consumer fetches messages)",
+          "At-least-once delivery (may duplicate — use IDs for idempotency)",
+          "Message retention up to 7 days",
+          "Ordering by key with Pub/Sub Ordering Keys",
+          "Dead Letter Topics for failed messages"
+        ],
+        "usecases": [
+          "Event pipeline",
+          "Log aggregation",
+          "Integration between microservices",
+          "Asynchronous notifications"
+        ],
+        "aceTip": "Pub/Sub is at-least-once, not exactly-once. Push vs Pull: Push = no consumer server always running (good for Functions). Pull = consumer control."
+      },
+      {
+        "name": "Dataflow",
+        "subtitle": "Batch and stream data pipelines (Apache Beam)",
+        "tag": "ETL",
+        "when": "Complex ETL, stream processing, large-scale data transformations",
+        "diffs": [
+          "Based on Apache Beam (open source)",
+          "Unifies batch and streaming in the same code",
+          "Autoscale workers automatically",
+          "Windowing functions for stream data (tumbling, sliding, session)",
+          "More complex than Dataproc, but serverless"
+        ],
+        "usecases": [
+          "ETL Pub/Sub → BigQuery",
+          "Event deduplication",
+          "Windowed stream aggregations"
+        ],
+        "aceTip": "Dataflow = Apache Beam on GCP. When you see 'process data stream' + BigQuery in the exam, it is usually Dataflow."
+      },
+      {
+        "name": "Dataproc",
+        "subtitle": "Managed Hadoop and Spark",
+        "tag": "Spark/Hadoop",
+        "when": "Migrate existing Hadoop/Spark workloads, process data with Spark ecosystem",
+        "diffs": [
+          "Spin up cluster in ~90 seconds (vs hours on-prem)",
+          "Ephemeral clusters: create, process, destroy (cost optimized)",
+          "Supports Hadoop, Spark, Hive, Pig, Presto",
+          "Preemptible VMs on worker nodes to reduce cost",
+          "Integrates with GCS as an HDFS replacement"
+        ],
+        "usecases": [
+          "Hadoop/Spark migration",
+          "Machine learning with Spark ML",
+          "ETL with Hive"
+        ],
+        "aceTip": "Dataproc = lift-and-shift of Hadoop/Spark. Dataflow = new pipelines with Beam. Choose Dataproc when you already have Spark code."
+      },
+      {
+        "name": "Looker / Looker Studio",
+        "subtitle": "BI and dashboards",
+        "tag": "BI",
+        "when": "Data visualization, business reporting, executive dashboards",
+        "diffs": [
+          "Looker Studio (formerly Data Studio): free, connects to BigQuery, Sheets, etc.",
+          "Looker: enterprise BI, data modeling with LookML, more powerful",
+          "Looker Studio = for basic BI. Looker = corporate data governance"
+        ],
+        "usecases": [
+          "Sales dashboards",
+          "Business KPIs",
+          "Automated reports"
+        ],
+        "aceTip": "On the ACE, the focus is on BigQuery. Looker/Studio appear as data destinations for visualization."
+      }
+    ]
+  },
+  {
+    "id": "devops",
+    "label": "DevOps & IAM",
+    "icon": "🔧",
+    "color": "color-devops",
+    "desc": "CI/CD, monitoring, IAM, projects, and resource management",
+    "products": [
+      {
+        "name": "Cloud IAM",
+        "subtitle": "Identity and Access Management",
+        "tag": "IAM",
+        "when": "Control who can do what on which resources",
+        "diffs": [
+          "Principal: Google Account, Service Account, Group, Domain",
+          "Role: collection of permissions (Basic, Predefined, Custom)",
+          "Basic roles (Owner/Editor/Viewer) are very broad — avoid in production",
+          "Service Accounts: identities for workloads (not for people)",
+          "Workload Identity Federation: no SA keys for external workloads",
+          "Principle of least privilege = use Predefined roles"
+        ],
+        "usecases": [
+          "Access control to GCP resources",
+          "Identity for VMs/GKE",
+          "Access auditing"
+        ],
+        "aceTip": "IAM is the most tested topic on the ACE. Know the hierarchy: Org > Folder > Project > Resource. Policies are inherited downwards. Deny policies override allows."
+      },
+      {
+        "name": "Cloud Monitoring",
+        "subtitle": "Metrics, alerts, and dashboards",
+        "tag": "Observability",
+        "when": "Monitor resource health, define SLOs, receive alerts",
+        "diffs": [
+          "Collects metrics from GCP, AWS, and on-premises (agent)",
+          "Alerting Policies with notifications via email, PagerDuty, Slack",
+          "Uptime Checks to test external availability",
+          "Custom metrics via API or OpenTelemetry",
+          "Workspace groups monitoring of multiple projects"
+        ],
+        "usecases": [
+          "SLA monitoring",
+          "CPU usage alert",
+          "GKE cluster health dashboard"
+        ],
+        "aceTip": "Alerting policies are configured with conditions + notification channels. Uptime checks = external HTTP/TCP verification."
+      },
+      {
+        "name": "Cloud Logging",
+        "subtitle": "Centralized logging and auditing",
+        "tag": "Logging",
+        "when": "Centralize application and access audit logs",
+        "diffs": [
+          "Admin Activity logs: always on, free, cannot be disabled",
+          "Data Access logs: off by default, generate high volume of data",
+          "System Event logs: automatic GCP actions",
+          "Log sinks: export logs to GCS, BigQuery, Pub/Sub",
+          "Log-based metrics: create metrics from patterns in logs"
+        ],
+        "usecases": [
+          "Security auditing",
+          "Debugging applications",
+          "Compliance"
+        ],
+        "aceTip": "Admin Activity = always enabled, immutable. Data Access logs must be explicitly enabled and incur costs. Log sinks = export to BigQuery for analysis."
+      },
+      {
+        "name": "Cloud Build",
+        "subtitle": "Serverless CI/CD",
+        "tag": "CI/CD",
+        "when": "Automate code build, test, and deploy",
+        "diffs": [
+          "Based on container steps (cloudbuild.yaml)",
+          "Triggers on push to GitHub, Bitbucket, Cloud Source Repos",
+          "Each step runs in an isolated container",
+          "Build Cache to speed up repeated builds",
+          "Integrated with Artifact Registry to push images"
+        ],
+        "usecases": [
+          "Build Docker images",
+          "Deploy to GKE/Cloud Run",
+          "Automated testing"
+        ],
+        "aceTip": "Cloud Build = serverless CI. Configured by cloudbuild.yaml. Integrates with Artifact Registry to push images."
+      },
+      {
+        "name": "Artifact Registry",
+        "subtitle": "Container and package registry",
+        "tag": "Registry",
+        "when": "Store Docker images, npm, Maven, PyPI packages privately",
+        "diffs": [
+          "Replaces legacy Container Registry",
+          "Supports Docker, npm, Maven, Python, Go, APT, Yum",
+          "Integrated with IAM for fine-grained access control",
+          "Integrated vulnerability scanning",
+          "Multi-region repositories"
+        ],
+        "usecases": [
+          "Private Docker image repository",
+          "Build artifacts for CI/CD"
+        ],
+        "aceTip": "Artifact Registry = modern replacement for Container Registry. Prefer AR for new projects."
+      },
+      {
+        "name": "Cloud Deployment Manager",
+        "subtitle": "GCP native IaC (YAML/Jinja/Python)",
+        "tag": "IaC",
+        "when": "Infrastructure as Code with native GCP templates",
+        "diffs": [
+          "YAML + Jinja2 or Python templates",
+          "GCP-specific (unlike Terraform which is multi-cloud)",
+          "In practice, Terraform is more widely used in the market",
+          "Does not require installation of external tools"
+        ],
+        "usecases": [
+          "Provision GCP infrastructure via code",
+          "Repeatable environments"
+        ],
+        "aceTip": "ACE mentions Deployment Manager, but Terraform dominates the market. Know that DM uses YAML/Jinja. Terraform uses HCL."
+      }
+    ]
+  },
+  {
+    "id": "security",
+    "label": "Security",
+    "icon": "🔒",
+    "color": "color-security",
+    "desc": "Keys, secrets, policies, and compliance",
+    "products": [
+      {
+        "name": "Secret Manager",
+        "subtitle": "Secrets and credentials management",
+        "tag": "Secrets",
+        "when": "Store passwords, API keys, certificates securely",
+        "diffs": [
+          "Secrets versioning (can have multiple versions)",
+          "Automatic rotation with Pub/Sub notifications",
+          "IAM access with full auditing",
+          "Natively integrated with Cloud Run, GKE, App Engine",
+          "Backed by KMS encryption"
+        ],
+        "usecases": [
+          "Database passwords",
+          "Third-party API keys",
+          "TLS certificates",
+          "OAuth tokens"
+        ],
+        "aceTip": "Secret Manager > environment variables for secrets. Always reference secrets by resource ID, do not hardcode values."
+      },
+      {
+        "name": "Cloud KMS",
+        "subtitle": "Cryptographic keys management",
+        "tag": "KMS",
+        "when": "Manage encryption keys, sign data, CMEK for GCP data",
+        "diffs": [
+          "CMEK (Customer Managed Encryption Keys): you control the key",
+          "Symmetric (AES-256) and Asymmetric keys (RSA, EC)",
+          "HSM keys: hardware security module for compliance",
+          "Configurable automatic key rotation",
+          "Separation of duties: who holds the key vs who accesses the data"
+        ],
+        "usecases": [
+          "Encrypt BigQuery/GCS with your own key",
+          "Sign JWT tokens",
+          "PCI/HIPAA compliance"
+        ],
+        "aceTip": "CMEK = you manage the encryption key for GCP data. If the exam says 'control encryption key', the answer is KMS + CMEK."
+      },
+      {
+        "name": "VPC Service Controls",
+        "subtitle": "Security perimeter around GCP services",
+        "tag": "Perimeter",
+        "when": "Prevent data exfiltration, isolate sensitive data from external access",
+        "diffs": [
+          "Defines a perimeter around GCP resources",
+          "Blocks access to GCP APIs from outside the perimeter",
+          "Ingress/egress rules by IP, identity, service",
+          "Different from VPC Firewall: firewall = L4 VM traffic; VPC SC = API access control"
+        ],
+        "usecases": [
+          "Isolate health data (HIPAA)",
+          "Financial compliance",
+          "Prevent data copying between projects"
+        ],
+        "aceTip": "VPC SC ≠ VPC Firewall. Firewall = VM network traffic. VPC SC = GCP API access. To 'prevent access to GCS from outside the perimeter', use VPC SC."
+      },
+      {
+        "name": "Cloud Armor",
+        "subtitle": "WAF and DDoS protection",
+        "tag": "WAF",
+        "when": "Protect web apps against DDoS, SQL injection, XSS, bots",
+        "diffs": [
+          "Integrated with the Global HTTP(S) Load Balancer",
+          "Pre-configured rules for OWASP Top 10",
+          "IP allowlist/denylist by CIDR",
+          "Rate limiting by IP",
+          "Adaptive Protection: ML to detect DDoS attacks"
+        ],
+        "usecases": [
+          "Public API protection",
+          "E-commerce sites",
+          "Block specific geographies"
+        ],
+        "aceTip": "Cloud Armor = WAF. Always attach to the Load Balancer. Security policies with priority-based rules."
+      }
+    ]
+  },
+  {
+    "id": "ai",
+    "label": "AI / ML",
+    "icon": "🤖",
+    "color": "color-ai",
+    "desc": "Vertex AI, pre-trained ML APIs, and AI tools",
+    "products": [
+      {
+        "name": "Vertex AI",
+        "subtitle": "Unified end-to-end ML platform",
+        "tag": "MLOps",
+        "when": "Train, tune, host, and monitor custom ML models",
+        "diffs": [
+          "Unifies AutoML + AI Platform in one place",
+          "Feature Store: stores and serves features for models",
+          "Model Registry: model versioning",
+          "Pipelines: training orchestration (based on Kubeflow)",
+          "Prediction endpoints with autoscaling"
+        ],
+        "usecases": [
+          "Train classification/regression models",
+          "Custom NLP",
+          "Computer vision"
+        ],
+        "aceTip": "Vertex AI = complete MLOps platform. AutoML = no-code. Custom training = full control."
+      },
+      {
+        "name": "Pre-trained AI APIs",
+        "subtitle": "Vision, NLP, Speech, and Translation",
+        "tag": "Pre-built",
+        "when": "Add AI capabilities without training models",
+        "diffs": [
+          "Vision AI: detect objects, text (OCR), faces, and labels in images",
+          "Natural Language API: sentiment, entities, and syntax in text",
+          "Speech-to-Text / Text-to-Speech",
+          "Translation API: 100+ languages",
+          "Document AI: extract data from PDFs and forms",
+          "No training data required"
+        ],
+        "usecases": [
+          "Moderate user content",
+          "Transcribe calls",
+          "Translate documents",
+          "Extract data from invoices"
+        ],
+        "aceTip": "Pre-trained APIs = zero training. Vertex AutoML = training with your data. Custom training = complete ML code."
+      },
+      {
+        "name": "Gemini / Vertex AI Generative",
+        "subtitle": "LLMs and generative models",
+        "tag": "GenAI",
+        "when": "Chatbots, text/code/image generation, RAG, agents",
+        "diffs": [
+          "Gemini via Vertex AI or via AI Studio",
+          "Grounding with Google Search or own data via RAG",
+          "Tuning with your data (supervised fine-tuning)",
+          "ACE coverage: Vertex AI Model Garden accesses open-source models"
+        ],
+        "usecases": [
+          "Support chatbot",
+          "Code generation",
+          "Document summarization"
+        ],
+        "aceTip": "On the current ACE, GenAI appears more as an architecture question (which service to use) than a technical ML question. Know that Vertex AI is the hub."
+      }
+    ]
+  }
+]
